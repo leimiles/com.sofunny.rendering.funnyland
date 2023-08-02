@@ -22,11 +22,46 @@ namespace SoFunny.Rendering.Funnyland {
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        bool m_DepthPrimingRecommended;
+        CopyDepthMode m_CopyDepthMode;
+        RenderingMode m_RenderingMode;
+        bool m_Clustering;
+        ForwardLights m_ForwardLights;
+        LightCookieManager m_LightCookieManager;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = 60;
             ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
+
+            if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
+                var settings = LightCookieManager.Settings.Create();
+                var asset = UniversalRenderPipeline.asset;
+                if (asset) {
+                    settings.atlas.format = asset.additionalLightsCookieFormat;
+                    settings.atlas.resolution = asset.additionalLightsCookieResolution;
+                }
+                m_LightCookieManager = new LightCookieManager(ref settings);
+            }
+
+            this.stripShadowsOffVariants = true;
+            this.stripAdditionalLightOffVariants = true;
+#if ENABLE_VR && ENABLE_VR_MODULE
+#if PLATFORM_WINRT || PLATFORM_ANDROID
+            // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
+            this.stripAdditionalLightOffVariants = !PlatformAutoDetect.isXRMobile;
+#endif
+#endif
+
+            ForwardLights.InitParams forwardInitParams;
+            forwardInitParams.forwardPlus = true;
+            forwardInitParams.lightCookieManager = m_LightCookieManager;
+            m_ForwardLights = new ForwardLights(forwardInitParams);
+            //m_Clustering = true;
+            //this.m_RenderingMode = RenderingMode.ForwardPlus;
+            //this.m_CopyDepthMode = CopyDepthMode.AfterOpaques;
+            //this.m_DepthPrimingRecommended = false;
+
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
@@ -39,6 +74,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
+
         }
 
         static void ProjectSettingMobile() {
@@ -80,6 +116,7 @@ namespace SoFunny.Rendering.Funnyland {
         }
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData) {
+            m_ForwardLights.PreSetup(ref renderingData);
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
@@ -110,6 +147,15 @@ namespace SoFunny.Rendering.Funnyland {
             EnqueuePass(m_RenderTransparentForwardPass);
             #endregion
 
+        }
+
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) {
+            m_ForwardLights.Setup(context, ref renderingData);
+        }
+
+        protected override void Dispose(bool disposing) {
+            m_ForwardLights.Cleanup();
+            base.Dispose(disposing);
         }
     }
 }
