@@ -14,11 +14,19 @@ namespace SoFunny.Rendering.Funnyland {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
 #endif
-        StencilState m_DefaultStencilState;
+        private static class Profiling {
+            private const string k_Name = nameof(FunnylandMobileRenderer);
+            public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
+        }
         static class ProfilerSamplerString {
             public static readonly string drawOpaqueForwardPass = "Draw Opaque Forward Pass";
             public static readonly string drawTransparentForwardPass = "Draw Transparent Forward Pass";
         }
+        internal RenderTargetBufferSystem m_ColorBufferSystem;
+        internal RTHandle m_ActiveCameraColorAttachment;
+        internal RTHandle m_ActiveCameraDepthAttachment;
+        internal RTHandle m_CameraDepthAttachment;
+        StencilState m_DefaultStencilState;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
@@ -65,6 +73,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
         }
 
         void SetDefaultStencilState(StencilStateData stencilData) {
@@ -119,8 +128,37 @@ namespace SoFunny.Rendering.Funnyland {
             m_ForwardLights.PreSetup(ref renderingData);
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+            var cmd = renderingData.commandBuffer;
+            var colorDescriptor = cameraTargetDescriptor;
+            colorDescriptor.useMipMap = false;
+            colorDescriptor.autoGenerateMips = false;
+            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
+
+            if (cameraData.renderType == CameraRenderType.Base) {
+                bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
+                bool intermediateRenderTexture = !sceneViewFilterEnabled;
+
+                if (intermediateRenderTexture) {
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
+                }
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
+            } else {
+                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                var baseRenderer = (FunnylandMobileRenderer)baseCameraData.scriptableRenderer;
+                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem) {
+                    m_ColorBufferSystem.Dispose();
+                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                }
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
+                //m_ac
+
+            }
+
+            //ConfigureCameraColorTarget()
+
             #region opaque pass
             RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
             RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.DontCare;
@@ -132,6 +170,7 @@ namespace SoFunny.Rendering.Funnyland {
             renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
             EnqueuePass(renderOpaqueForwardPass);
             #endregion
+
             #region  skybox pass
             if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay) {
                 if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null)) {
@@ -139,6 +178,7 @@ namespace SoFunny.Rendering.Funnyland {
                 }
             }
             #endregion
+
             #region transparent pass
             RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
             RenderBufferStoreAction transparentPassDepthStoreAction = lastCameraInTheStack ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Store;
@@ -149,13 +189,61 @@ namespace SoFunny.Rendering.Funnyland {
 
         }
 
+        internal override void ReleaseRenderTargets() {
+            // 一次性释放多个 rthandle 资源
+            m_ColorBufferSystem.Dispose();
+            m_CameraDepthAttachment?.Release();
+            hasReleasedRTs = true;
+        }
+
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) {
             m_ForwardLights.Setup(context, ref renderingData);
+        }
+
+        public override void FinishRendering(CommandBuffer cmd) {
+            m_ColorBufferSystem.Clear();
+            m_ActiveCameraColorAttachment = null;
+            m_ActiveCameraDepthAttachment = null;
+        }
+
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
+
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
+
+                if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
+                    m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
+                    Debug.Log(m_ActiveCameraColorAttachment.name);
+                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+                    //cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
+
+                    //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
+                    //cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
+                }
+
+
+                if (m_CameraDepthAttachment == null || m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget) {
+                    var depthDescriptor = descriptor;
+                    depthDescriptor.useMipMap = false;
+                    depthDescriptor.autoGenerateMips = false;
+                    depthDescriptor.bindMS = false;
+                    depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthRTAttachment");
+                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
+                }
+
+            }
+
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
         }
 
         protected override void Dispose(bool disposing) {
             m_ForwardLights.Cleanup();
             base.Dispose(disposing);
         }
+
     }
 }
