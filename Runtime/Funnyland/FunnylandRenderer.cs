@@ -189,38 +189,20 @@ namespace SoFunny.Rendering.Funnyland {
 
         }
 
-        internal override void ReleaseRenderTargets() {
-            // 一次性释放多个 rthandle 资源
-            m_ColorBufferSystem.Dispose();
-            m_CameraDepthAttachment?.Release();
-            hasReleasedRTs = true;
-        }
-
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) {
             m_ForwardLights.Setup(context, ref renderingData);
         }
 
-        public override void FinishRendering(CommandBuffer cmd) {
-            m_ColorBufferSystem.Clear();
-            m_ActiveCameraColorAttachment = null;
-            m_ActiveCameraDepthAttachment = null;
-        }
-
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
-
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
-
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
-                    Debug.Log(m_ActiveCameraColorAttachment.name);
-                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+                    //ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
                     //cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
 
                     //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
                     //cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
                 }
-
-
                 if (m_CameraDepthAttachment == null || m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget) {
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
@@ -231,17 +213,27 @@ namespace SoFunny.Rendering.Funnyland {
                     RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthRTAttachment");
                     cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
                 }
-
             }
-
-
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+        }
 
+        public override void FinishRendering(CommandBuffer cmd) {
+            m_ColorBufferSystem.Clear();
+            m_ActiveCameraColorAttachment = null;
+            m_ActiveCameraDepthAttachment = null;
+        }
+
+        internal override void ReleaseRenderTargets() {
+            // 一次性释放多个 rthandle 资源
+            m_ColorBufferSystem.Dispose();
+            m_CameraDepthAttachment?.Release();
+            hasReleasedRTs = true;
         }
 
         protected override void Dispose(bool disposing) {
             m_ForwardLights.Cleanup();
+            ReleaseRenderTargets();
             base.Dispose(disposing);
         }
 
