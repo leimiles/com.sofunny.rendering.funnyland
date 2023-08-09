@@ -134,7 +134,7 @@ Shader "SoFunny/Funnyland/URPCube"
 
             ENDHLSL
         }
-        /*
+
         Pass
         {
             Name "ShadowCaster"
@@ -178,7 +178,7 @@ Shader "SoFunny/Funnyland/URPCube"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
-
+        /*
         Pass
         {
             Name "GBuffer"
@@ -337,4 +337,5 @@ Shader "SoFunny/Funnyland/URPCube"
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
     //CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
+
 }
