@@ -13,14 +13,20 @@ MonoBehaviour:
   m_Name: Funnyland Renderer Data
   m_EditorClassIdentifier: 
   debugShaders:
-    debugReplacementPS: {fileID: 0}
-    hdrDebugViewPS: {fileID: 0}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+    hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures: []
   m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
+  shaderResources:
+    coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
   m_ShaderTagLightModes:
   - FunnylandMobileForward
+  m_FrameLimit: 60
   m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
   m_DefaultStencilState:

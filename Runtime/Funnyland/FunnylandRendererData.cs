@@ -40,6 +40,13 @@ namespace SoFunny.Rendering.Funnyland {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateFunnylandRendererAsset>(), "Funnyland Renderer Data.asset", null, null);
         }
 #endif
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources {
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+            internal Shader coreBlitPS;
+        }
+
+        public ShaderResources shaderResources = null;
 
         [SerializeField] string[] m_ShaderTagLightModes;
         public ShaderTagId[] shaderTagIds {
@@ -54,6 +61,19 @@ namespace SoFunny.Rendering.Funnyland {
                     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnylandTest") };
                     return shaderTagIds;
                 }
+            }
+        }
+
+        public enum FrameLimit {
+            Standard = 30,
+            Ultra = 60
+        }
+        [SerializeField] FrameLimit m_FrameLimit = FrameLimit.Ultra;
+        public int frameLimit {
+            get => (int)m_FrameLimit;
+            set {
+                SetDirty();
+                m_FrameLimit = (FrameLimit)value;
             }
         }
 
@@ -85,6 +105,23 @@ namespace SoFunny.Rendering.Funnyland {
         }
         protected override ScriptableRenderer Create() {
             return new FunnylandMobileRenderer(this);
+        }
+        protected override void OnEnable() {
+            base.OnEnable();
+            if (shaderResources == null) {
+                return;
+            }
+            ReloadAllNullProperties();
+        }
+        private void ReloadAllNullProperties() {
+#if UNITY_EDITOR
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            /*
+            if (postProcessData != null) {}
+                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+                */
+
+#endif
         }
         public void OnAfterDeserialize() {
         }
