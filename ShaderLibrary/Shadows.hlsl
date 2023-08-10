@@ -2,7 +2,7 @@
 #define UNIVERSAL_SHADOWS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Core.hlsl"
 #include "Shadows.deprecated.hlsl"
@@ -211,7 +211,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     else if(samplingData.softShadowQuality == SOFT_SHADOW_QUALITY_MEDIUM)
     {
         real fetchesWeights[9];
-        real2 fetchesUV[9];
+        float2 fetchesUV[9];
         SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
         attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
@@ -227,7 +227,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     else // SOFT_SHADOW_QUALITY_HIGH
     {
         real fetchesWeights[16];
-        real2 fetchesUV[16];
+        float2 fetchesUV[16];
         SampleShadow_ComputeSamples_Tent_7x7(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
         attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
