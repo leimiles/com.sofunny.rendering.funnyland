@@ -134,7 +134,7 @@ Shader "SoFunny/Funnyland/FunnyCube"
 
             ENDHLSL
         }
-        /*
+
         Pass
         {
             Name "ShadowCaster"
@@ -179,6 +179,7 @@ Shader "SoFunny/Funnyland/FunnyCube"
             ENDHLSL
         }
 
+        /*
         Pass
         {
             Name "GBuffer"

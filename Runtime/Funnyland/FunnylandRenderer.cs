@@ -28,6 +28,8 @@ namespace SoFunny.Rendering.Funnyland {
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
         StencilState m_DefaultStencilState;
+        MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
@@ -76,7 +78,8 @@ namespace SoFunny.Rendering.Funnyland {
             //this.m_RenderingMode = RenderingMode.ForwardPlus;
             //this.m_CopyDepthMode = CopyDepthMode.AfterOpaques;
             //this.m_DepthPrimingRecommended = false;
-
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
@@ -118,6 +121,9 @@ namespace SoFunny.Rendering.Funnyland {
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
 
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
                 bool intermediateRenderTexture = !sceneViewFilterEnabled;
@@ -141,7 +147,15 @@ namespace SoFunny.Rendering.Funnyland {
 
             // 更改渲染目标至新的 color 和 depth buffer
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+            
+            #region shadows pass
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
 
+            if (additionalLightShadows)
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            #endregion
+            
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
 
             #region opaque pass
@@ -216,6 +230,8 @@ namespace SoFunny.Rendering.Funnyland {
             // 一次性释放多个 rthandle 资源
             m_ColorBufferSystem.Dispose();
             m_CameraDepthAttachment?.Release();
+            m_MainLightShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
             hasReleasedRTs = true;
         }
 
@@ -225,6 +241,40 @@ namespace SoFunny.Rendering.Funnyland {
             ReleaseRenderTargets();
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
+        }
+        
+                /// <inheritdoc />
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
+            ref CameraData cameraData)
+        {
+            // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
+            // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
+            //     asset.maxAdditionalLightsCount == 0)
+            
+            // if (renderingModeActual == RenderingMode.ForwardPlus)
+            cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+
+
+            // We disable shadow casters if both shadow casting modes are turned off
+            // or the shadow distance has been turned down to zero
+            bool isShadowCastingDisabled = !UniversalRenderPipeline.asset.supportsMainLightShadows && !UniversalRenderPipeline.asset.supportsAdditionalLightShadows;
+            bool isShadowDistanceZero = Mathf.Approximately(cameraData.maxShadowDistance, 0.0f);
+            if (isShadowCastingDisabled || isShadowDistanceZero)
+            {
+                cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+            }
+            
+            // We set the number of maximum visible lights allowed and we add one for the mainlight...
+            //
+            // Note: However ScriptableRenderContext.Cull() does not differentiate between light types.
+            //       If there is no active main light in the scene, ScriptableRenderContext.Cull() might return  ( cullingParameters.maximumVisibleLights )  visible additional lights.
+            //       i.e ScriptableRenderContext.Cull() might return  ( UniversalRenderPipeline.maxVisibleAdditionalLights + 1 )  visible additional lights !
+            cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
+            cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+
+            cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
+
+            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
         float GetAdaptedScale() {
