@@ -7,13 +7,6 @@ using UnityEngine.Rendering.Universal;
 
 namespace SoFunny.Rendering.Funnyland {
     public class FunnylandMobileRenderer : ScriptableRenderer {
-#if UNITY_SWITCH || UNITY_ANDROID
-        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
-        const int k_DepthBufferBits = 24;
-#else
-        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
-        const int k_DepthBufferBits = 32;
-#endif
         private static class Profiling {
             private const string k_Name = nameof(FunnylandMobileRenderer);
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
@@ -22,6 +15,14 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly string drawOpaqueForwardPass = "Draw Opaque Forward Pass";
             public static readonly string drawTransparentForwardPass = "Draw Transparent Forward Pass";
         }
+#if UNITY_SWITCH || UNITY_ANDROID
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
+        const int k_DepthBufferBits = 24;
+#else
+        const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
+        const int k_DepthBufferBits = 32;
+#endif
+        const int k_FinalBlitPassQueueOffset = 1;
         internal RenderTargetBufferSystem m_ColorBufferSystem;
         internal RTHandle m_ActiveCameraColorAttachment;
         internal RTHandle m_ActiveCameraDepthAttachment;
@@ -30,17 +31,22 @@ namespace SoFunny.Rendering.Funnyland {
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        FinalBlitPass m_FinalBlitPass;
         bool m_DepthPrimingRecommended;
         CopyDepthMode m_CopyDepthMode;
         RenderingMode m_RenderingMode;
         bool m_Clustering;
         ForwardLights m_ForwardLights;
         LightCookieManager m_LightCookieManager;
+        Material m_BlitMaterial = null;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = 60;
             ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
+
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
+
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
@@ -73,6 +79,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
         }
 
@@ -84,6 +91,139 @@ namespace SoFunny.Rendering.Funnyland {
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+        }
+
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) {
+            m_ForwardLights.Setup(context, ref renderingData);
+        }
+
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData) {
+            m_ForwardLights.PreSetup(ref renderingData);
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+            var cmd = renderingData.commandBuffer;
+            var colorDescriptor = cameraTargetDescriptor;
+
+            bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
+#if UNITY_EDITOR
+            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+#else
+            bool isGizmosEnabled = false;
+#endif
+            // buffer size
+            colorDescriptor.useMipMap = false;
+            colorDescriptor.autoGenerateMips = false;
+            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
+
+            if (cameraData.renderType == CameraRenderType.Base) {
+                bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
+                bool intermediateRenderTexture = !sceneViewFilterEnabled;
+
+                if (intermediateRenderTexture) {
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
+                }
+                // 初始化新的 color 和 depth buffer
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
+                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+            } else {
+                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
+                var baseRenderer = (FunnylandMobileRenderer)baseCameraData.scriptableRenderer;
+                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem) {
+                    m_ColorBufferSystem.Dispose();
+                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
+                }
+                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
+                m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
+            }
+
+            // 更改渲染目标至新的 color 和 depth buffer
+            ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+
+            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
+            #region opaque pass
+            RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
+            RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.DontCare;
+            DrawObjectsPass renderOpaqueForwardPass = null;
+            renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
+            renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
+            renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+            ClearFlag opaqueForwardPassClearFlag = (cameraData.renderType != CameraRenderType.Base) ? ClearFlag.None : ClearFlag.Color;
+            renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
+            EnqueuePass(renderOpaqueForwardPass);
+            #endregion
+
+            #region  skybox pass
+            if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay) {
+                if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null)) {
+                    EnqueuePass(m_DrawSkyboxPass);
+                }
+            }
+            #endregion
+
+            #region transparent pass
+            RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+            RenderBufferStoreAction transparentPassDepthStoreAction = lastCameraInTheStack ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Store;
+            m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
+            m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
+            EnqueuePass(m_RenderTransparentForwardPass);
+            #endregion
+
+            if (lastCameraInTheStack) {
+                var sourceForFinalPass = m_ActiveCameraColorAttachment;
+                #region  final blit
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
+                EnqueuePass(m_FinalBlitPass);
+                #endregion
+            }
+
+        }
+
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
+                if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
+                    m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
+                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+                    cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
+                    //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
+                    //cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
+                }
+                if (m_CameraDepthAttachment == null || m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget) {
+                    var depthDescriptor = descriptor;
+                    depthDescriptor.useMipMap = false;
+                    depthDescriptor.autoGenerateMips = false;
+                    depthDescriptor.bindMS = false;
+                    depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthRTAttachment");
+                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
+                }
+            }
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
+
+        public override void FinishRendering(CommandBuffer cmd) {
+            m_ColorBufferSystem.Clear();
+            m_ActiveCameraColorAttachment = null;
+            m_ActiveCameraDepthAttachment = null;
+        }
+
+        internal override void ReleaseRenderTargets() {
+            // 一次性释放多个 rthandle 资源
+            m_ColorBufferSystem.Dispose();
+            m_CameraDepthAttachment?.Release();
+            hasReleasedRTs = true;
+        }
+
+        protected override void Dispose(bool disposing) {
+            m_ForwardLights.Cleanup();
+            m_FinalBlitPass?.Dispose();
+            ReleaseRenderTargets();
+            base.Dispose(disposing);
+            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         static void ProjectSettingMobile() {
@@ -121,120 +261,6 @@ namespace SoFunny.Rendering.Funnyland {
 
 #endif
 #endif
-
-        }
-
-        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData) {
-            m_ForwardLights.PreSetup(ref renderingData);
-            ref CameraData cameraData = ref renderingData.cameraData;
-            Camera camera = cameraData.camera;
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
-            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
-            var cmd = renderingData.commandBuffer;
-            var colorDescriptor = cameraTargetDescriptor;
-            colorDescriptor.useMipMap = false;
-            colorDescriptor.autoGenerateMips = false;
-            colorDescriptor.depthBufferBits = (int)DepthBits.None;
-            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
-
-            if (cameraData.renderType == CameraRenderType.Base) {
-                bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
-                bool intermediateRenderTexture = !sceneViewFilterEnabled;
-
-                if (intermediateRenderTexture) {
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
-                }
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
-            } else {
-                cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
-                var baseRenderer = (FunnylandMobileRenderer)baseCameraData.scriptableRenderer;
-                if (m_ColorBufferSystem != baseRenderer.m_ColorBufferSystem) {
-                    m_ColorBufferSystem.Dispose();
-                    m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
-                }
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
-                //m_ac
-
-            }
-
-            //ConfigureCameraColorTarget()
-
-            #region opaque pass
-            RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
-            RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.DontCare;
-            DrawObjectsPass renderOpaqueForwardPass = null;
-            renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
-            renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
-            renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
-            ClearFlag opaqueForwardPassClearFlag = (cameraData.renderType != CameraRenderType.Base) ? ClearFlag.None : ClearFlag.Color;
-            renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
-            EnqueuePass(renderOpaqueForwardPass);
-            #endregion
-
-            #region  skybox pass
-            if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay) {
-                if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null)) {
-                    EnqueuePass(m_DrawSkyboxPass);
-                }
-            }
-            #endregion
-
-            #region transparent pass
-            RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-            RenderBufferStoreAction transparentPassDepthStoreAction = lastCameraInTheStack ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Store;
-            m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
-            m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
-            EnqueuePass(m_RenderTransparentForwardPass);
-            #endregion
-
-        }
-
-        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) {
-            m_ForwardLights.Setup(context, ref renderingData);
-        }
-
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
-            using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
-                if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
-                    m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
-                    //ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
-                    //cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
-
-                    //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
-                    //cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
-                }
-                if (m_CameraDepthAttachment == null || m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget) {
-                    var depthDescriptor = descriptor;
-                    depthDescriptor.useMipMap = false;
-                    depthDescriptor.autoGenerateMips = false;
-                    depthDescriptor.bindMS = false;
-                    depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthRTAttachment");
-                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
-                }
-            }
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-        }
-
-        public override void FinishRendering(CommandBuffer cmd) {
-            m_ColorBufferSystem.Clear();
-            m_ActiveCameraColorAttachment = null;
-            m_ActiveCameraDepthAttachment = null;
-        }
-
-        internal override void ReleaseRenderTargets() {
-            // 一次性释放多个 rthandle 资源
-            m_ColorBufferSystem.Dispose();
-            m_CameraDepthAttachment?.Release();
-            hasReleasedRTs = true;
-        }
-
-        protected override void Dispose(bool disposing) {
-            m_ForwardLights.Cleanup();
-            ReleaseRenderTargets();
-            base.Dispose(disposing);
         }
 
     }
