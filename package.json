@@ -9,7 +9,7 @@
     "com.unity.burst": "1.8.4",
     "com.unity.render-pipelines.core": "14.0.8",
     "com.unity.shadergraph": "14.0.8",
-    "com.unity.entities.graphics": "1.0.11"
+    "com.unity.entities.graphics": "1.0.8"
   },
   "keywords": [
     "graphics",
