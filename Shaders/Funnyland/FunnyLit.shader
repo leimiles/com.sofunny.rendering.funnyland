@@ -4,28 +4,34 @@ Shader "SoFunny/Funnyland/FunnyLit"
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
     {
-        [MainTexture] _BaseMap ("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" { }
         [MainColor]   _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
+        [MainTexture] _BaseMap ("Base Map", 2D) = "white" { }
 
-        _Cutoff ("Alpha Clipping", Range(0.0, 1.0)) = 0.5
-
-        _Smoothness ("Smoothness", Range(0.0, 1.0)) = 0.5
-        _SpecColor ("Specular Color", Color) = (0.5, 0.5, 0.5, 0.5)
-        _SpecGlossMap ("Specular Map", 2D) = "white" { }
-        _SmoothnessSource ("Smoothness Source", Float) = 0.0
-        _SpecularHighlights ("Specular Highlights", Float) = 1.0
-
-        [HideInInspector] _BumpScale ("Scale", Float) = 1.0
+        [HideInInspector]_Cutoff ("Alpha Clipping", Range(0.0, 1.0)) = 0.5
+        
+        [HideInInspector]_SpecGlossMap ("Specular Map", 2D) = "white" { }
+        
+        _MetallicGlossMap("MixMap(R:Metallic A:Smoothness)", 2D) = "black" {}
+        [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
+        _Smoothness ("Smoothness Offset", Range(-1.0, 1.0)) = 0
+        _Metallic("Metallic Offset", Range(-1.0, 1.0)) = 0.0
+        
+        [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
+        [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
+        
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
+        [HideInInspector]_BumpScale ("Normal Scale", Float) = 1.0
+        
+        _EnvironmentCubemap ("Environment Cubemap", Cube) = "white" { }
 
-        [HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
-        [NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
+        [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
+        [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
 
         // Blending state
-        _Surface ("__surface", Float) = 0.0
-        _Blend ("__blend", Float) = 0.0
-        _Cull ("__cull", Float) = 2.0
-        [ToggleUI] _AlphaClip ("__clip", Float) = 0.0
+        [HideInInspector]_Surface ("__surface", Float) = 0.0
+        [HideInInspector]_Blend ("__blend", Float) = 0.0
+        [HideInInspector]_Cull ("__cull", Float) = 2.0
+        [HideInInspector][ToggleUI] _AlphaClip ("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend ("__src", Float) = 1.0
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _SrcBlendAlpha ("__srcA", Float) = 1.0
@@ -34,9 +40,9 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector] _BlendModePreserveSpecular ("_BlendModePreserveSpecular", Float) = 1.0
         [HideInInspector] _AlphaToMask ("__alphaToMask", Float) = 0.0
 
-        [ToggleUI] _ReceiveShadows ("Receive Shadows", Float) = 1.0
+        [HideInInspector][ToggleUI] _ReceiveShadows ("Receive Shadows", Float) = 1.0
         // Editmode props
-        _QueueOffset ("Queue offset", Float) = 0.0
+        [HideInInspector]_QueueOffset ("Queue offset", Float) = 0.0
 
         // ObsoleteProperties
         [HideInInspector] _MainTex ("BaseMap", 2D) = "white" { }
@@ -79,13 +85,13 @@ Shader "SoFunny/Funnyland/FunnyLit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
-            #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
+            // #pragma shader_feature_local_fragment _EMISSION
+            // #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
-            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+            // #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
+            // #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -121,11 +127,13 @@ Shader "SoFunny/Funnyland/FunnyLit"
             //--------------------------------------
             // Defines
             #define BUMP_SCALE_NOT_SUPPORTED 1
+            #define _NORMALMAP
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitShading.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitForwardPass.hlsl"
             ENDHLSL
         }
         /*
@@ -392,6 +400,6 @@ Shader "SoFunny/Funnyland/FunnyLit"
     }
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
+//    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
 
 }
