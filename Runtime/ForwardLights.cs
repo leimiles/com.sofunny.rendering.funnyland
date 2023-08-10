@@ -199,7 +199,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     lightOffset++;
                 }
                 m_LightCount -= lightOffset;
-
+                // 限制整个场景 Cluster Lighting 计算灯光数量
+                m_LightCount = Mathf.Min(UniversalRenderPipeline.maxClusterLightsAllScene, m_LightCount);
+                
                 m_DirectionalLightCount = lightOffset;
                 if (renderingData.lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
 
