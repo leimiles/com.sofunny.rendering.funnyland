@@ -475,7 +475,10 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsUnusedVariants               = !stripUnusedVariants;
             rsd.isUniversalRenderer               = universalRendererData != null && universalRenderer != null;
             rsd.msaaSampleCount                   = urpAsset.msaaSampleCount;
-            rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
+            //rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
+            
+            // 默认使用Forward+
+            rsd.renderingMode                     = RenderingMode.ForwardPlus;
             rsd.needsMainLightShadows             = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
             rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
             rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
