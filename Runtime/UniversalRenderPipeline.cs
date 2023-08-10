@@ -157,6 +157,9 @@ namespace UnityEngine.Rendering.Universal
         internal static int maxZBinWords => 1024 * 4;
         internal static int maxTileWords => (maxVisibleAdditionalLights <= 32 ? 1024 : 4096) * 4;
         internal static int maxVisibleReflectionProbes => Math.Min(maxVisibleAdditionalLights, 64);
+        
+        // 限制整个场景参与计算得所有灯光数量
+        internal static int maxClusterLightsAllScene => 32;
 
         internal const int k_DefaultRenderingLayerMask = 0x00000001;
         private readonly DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
