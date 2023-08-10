@@ -64,6 +64,19 @@ namespace SoFunny.Rendering.Funnyland {
             }
         }
 
+        public enum FrameLimit {
+            Standard = 30,
+            Ultra = 60
+        }
+        [SerializeField] FrameLimit m_FrameLimit = FrameLimit.Ultra;
+        public int frameLimit {
+            get => (int)m_FrameLimit;
+            set {
+                SetDirty();
+                m_FrameLimit = (FrameLimit)value;
+            }
+        }
+
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         public LayerMask opaqueLayerMask {
             get => m_OpaqueLayerMask;

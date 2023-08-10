@@ -40,13 +40,13 @@ namespace SoFunny.Rendering.Funnyland {
         LightCookieManager m_LightCookieManager;
         Material m_BlitMaterial = null;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
-            Application.targetFrameRate = 60;
+
+            Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
-
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
