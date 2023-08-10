@@ -40,13 +40,14 @@ namespace SoFunny.Rendering.Funnyland {
         LightCookieManager m_LightCookieManager;
         Material m_BlitMaterial = null;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
-
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
+
+            UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
@@ -224,6 +225,15 @@ namespace SoFunny.Rendering.Funnyland {
             ReleaseRenderTargets();
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
+        }
+
+        float GetAdaptedScale() {
+            float sideLength = (float)Mathf.Min(Screen.width, Screen.height);
+            float scale = 1.0f;
+            if (sideLength > 720.0f) {
+                scale = 720.0f / sideLength;
+            }
+            return scale;
         }
 
         static void ProjectSettingMobile() {
