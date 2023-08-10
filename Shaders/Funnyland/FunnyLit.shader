@@ -176,7 +176,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/SofunnySimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
