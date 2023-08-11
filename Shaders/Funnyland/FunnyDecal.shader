@@ -29,7 +29,7 @@ Shader "SoFunny/Funnyland/FunnyDecal"
         Pass
         {
             Name "UnlitDecal"
-            Tags { "LightMode" = "UniversalForward" }
+            Tags { "LightMode" = "FunnylandMobileForward" }
             Stencil
             {
                 Ref[_StencilRef]
