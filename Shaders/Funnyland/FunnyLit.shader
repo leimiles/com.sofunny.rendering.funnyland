@@ -11,10 +11,10 @@ Shader "SoFunny/Funnyland/FunnyLit"
         
         [HideInInspector]_SpecGlossMap ("Specular Map", 2D) = "white" { }
         
-        _MetallicGlossMap("MixMap(R:Metallic A:Smoothness)", 2D) = "black" {}
+        _MixMap("MixMap(R:Metallic G:AO B:Roughness)", 2D) = "white" {}
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
-        _Smoothness ("Smoothness Offset", Range(-1.0, 1.0)) = 0
-        _Metallic("Metallic Offset", Range(-1.0, 1.0)) = 0.0
+        _RoughnessOffset ("Roughness Offset", Range(-1.0, 1.0)) = -0.5
+        _MetallicOffset("Metallic Offset", Range(-1.0, 1.0)) = -1.0
         
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
@@ -22,8 +22,6 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
         [HideInInspector]_BumpScale ("Normal Scale", Float) = 1.0
         
-        _EnvironmentCubemap ("Environment Cubemap", Cube) = "white" { }
-
         [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
         [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
 
@@ -84,7 +82,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature_local _NORMALMAP
+            // #pragma shader_feature_local _NORMALMAP
             // #pragma shader_feature_local_fragment _EMISSION
             // #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT

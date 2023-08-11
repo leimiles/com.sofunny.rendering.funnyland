@@ -39,9 +39,7 @@ half3 CalculateEnvironmentSpecular(InputData inputData, SurfaceData surfaceData)
 {
     half3 reflectVector = reflect(-inputData.viewDirectionWS, inputData.normalWS);
     half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
-    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_EnvironmentCubemap, sampler_EnvironmentCubemap, reflectVector, mip);
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, _EnvironmentCubemap_HDR);
+    half3 irradiance = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, perceptualRoughness, 1.0h, inputData.normalizedScreenSpaceUV);
 
     half NoV = saturate(dot(inputData.normalWS, inputData.viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
@@ -85,7 +83,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    lightingData.giColor = CalculateGI(inputData, surfaceData);
+    lightingData.giColor = CalculateGI(inputData, surfaceData) * aoFactor.indirectAmbientOcclusion;
 
     #ifdef _LIGHT_LAYERS
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
