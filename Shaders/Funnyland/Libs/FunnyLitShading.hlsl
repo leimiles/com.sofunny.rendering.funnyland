@@ -83,7 +83,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    lightingData.giColor = CalculateGI(inputData, surfaceData);
+    lightingData.giColor = CalculateGI(inputData, surfaceData) * aoFactor.indirectAmbientOcclusion;
 
     #ifdef _LIGHT_LAYERS
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
