@@ -7,7 +7,6 @@
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
     half4 _BaseColor;
-    half4 _SpecColor;
     half4 _EmissionColor;
     half _Cutoff;
     half _Surface;
@@ -18,7 +17,6 @@ CBUFFER_END
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
     UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
         UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
-        UNITY_DOTS_INSTANCED_PROP(float4, _SpecColor)
         UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
         UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
         UNITY_DOTS_INSTANCED_PROP(float , _Surface)
@@ -27,7 +25,6 @@ CBUFFER_END
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
     #define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _BaseColor)
-    #define _SpecColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _SpecColor)
     #define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _EmissionColor)
     #define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _Cutoff)
     #define _Surface            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _Surface)
@@ -54,7 +51,7 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     outSurfaceData.albedo = saturate((1 - outSurfaceData.metallic) * 0.96) * albedoAlpha.rgb * _BaseColor.rgb;
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, outSurfaceData.alpha);
     
-    outSurfaceData.specular = lerp(0.04, (albedoAlpha.rgb * _BaseColor.rgb) * _SpecColor.rgb, outSurfaceData.metallic);
+    outSurfaceData.specular = lerp(0.04, (albedoAlpha.rgb * _BaseColor.rgb), outSurfaceData.metallic);
     outSurfaceData.smoothness = (1 - mixMap.b);
     
     outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
