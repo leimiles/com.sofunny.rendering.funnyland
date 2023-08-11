@@ -49,7 +49,7 @@ Shader "SoFunny/Funnyland/FunnyDecal"
 
             #pragma multi_compile_fog
 
-            #pragma target 2.0
+            #pragma target 4.5
             #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma shader_feature_local _UnityFogEnable
             #pragma shader_feature_local_fragment _SupportOrthographicCamera
