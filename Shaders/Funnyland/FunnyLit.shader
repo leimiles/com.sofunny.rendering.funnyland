@@ -13,7 +13,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
         
         _MixMap("MixMap(R:Metallic G:AO B:Roughness)", 2D) = "black" {}
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
-        _RoughnessOffset ("Roughness Offset", Range(-1.0, 1.0)) = 0
+        _RoughnessOffset ("Roughness Offset", Range(-1.0, 1.0)) = 0.5
         _MetallicOffset("Metallic Offset", Range(-1.0, 1.0)) = 0.0
         
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
