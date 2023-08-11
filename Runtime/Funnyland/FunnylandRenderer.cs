@@ -284,6 +284,7 @@ namespace SoFunny.Rendering.Funnyland {
             ReleaseRenderTargets();
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_CopyDepthMaterial);
         }
         
                 /// <inheritdoc />
