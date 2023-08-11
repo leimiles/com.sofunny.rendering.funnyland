@@ -42,6 +42,9 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
         [Serializable, ReloadGroup]
         public sealed class ShaderResources {
+            [Reload("Shaders/Utils/CopyDepth.shader")]
+            public Shader copyDepthPS;
+            
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
         }
