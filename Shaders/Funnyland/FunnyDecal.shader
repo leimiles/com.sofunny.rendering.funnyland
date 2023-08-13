@@ -40,7 +40,7 @@ Shader "SoFunny/Funnyland/FunnyDecal"
             ZTest[_ZTest]
 
             ZWrite off
-            Blend[_SrcBlend][_DstBlend]
+            Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
 
