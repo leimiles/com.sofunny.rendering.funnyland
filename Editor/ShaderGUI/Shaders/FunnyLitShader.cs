@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
@@ -20,7 +22,49 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         // material changed check
         public override void ValidateMaterial(Material material)
         {
-            SetMaterialKeywords(material, FunnyLitGUI.SetMaterialKeywords, LitDetailGUI.SetMaterialKeywords);
+            // Setup blending - consistent across all Universal RP shaders
+            SetupMaterialBlendModeInternal(material, out int renderQueue);
+
+            // apply automatic render queue
+            if ((renderQueue != material.renderQueue))
+                material.renderQueue = renderQueue;
+
+            // Cast Shadows
+            bool castShadows = true;
+            if (material.HasProperty(Property.CastShadows))
+            {
+                castShadows = (material.GetFloat(Property.CastShadows) != 0.0f);
+            }
+            else
+            {
+                // Lit.shader or Unlit.shader -- set based on transparency
+                castShadows = LitGUI.IsOpaque(material);
+            }
+            material.SetShaderPassEnabled("ShadowCaster", castShadows);
+            
+            // Receive Shadows
+            if (material.HasProperty(Property.ReceiveShadows))
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+
+
+            // Setup double sided GI based on Cull state
+            if (material.HasProperty(Property.CullMode))
+                material.doubleSidedGI = (RenderFace)material.GetFloat(Property.CullMode) != RenderFace.Front;
+
+            // Temporary fix for lightmapping. TODO: to be replaced with attribute tag.
+            if (material.HasProperty("_MainTex"))
+            {
+                material.SetTexture("_MainTex", material.GetTexture("_BaseMap"));
+                material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
+                material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
+            }
+            if (material.HasProperty("_Color"))
+                material.SetColor("_Color", material.GetColor("_BaseColor"));
+            
+
+            // Normal Map
+            if (material.HasProperty("_BumpMap"))
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
         }
 
         // material main surface options
@@ -29,10 +73,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-            if (litProperties.workflowMode != null)
-                DoPopup(FunnyLitGUI.Styles.workflowModeText, litProperties.workflowMode, workflowModeNames);
+            DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
 
-            base.DrawSurfaceOptions(material);
+            //Transparent BlendMode 强制设置为 Alpha
+            if (surfaceTypeProp != null && surfaceTypeProp.floatValue == 1)
+            {
+                if (blendModeProp != null)
+                {
+                    blendModeProp.floatValue = 0;
+                }
+
+                if (preserveSpecProp != null)
+                {
+                    preserveSpecProp.floatValue = 0;
+                }
+            }
+
+            if (receiveShadowsProp != null)
+            {
+                receiveShadowsProp.floatValue = 0;
+            }
+            
+            DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
+            DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
+            
+            DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
+
+            if ((alphaClipProp != null) && (alphaCutoffProp != null) && (alphaClipProp.floatValue == 1))
+                materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
         }
 
         // material main surface inputs
