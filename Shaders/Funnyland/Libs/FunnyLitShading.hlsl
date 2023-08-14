@@ -7,31 +7,30 @@ half TrowbridgeReitzNormalDistribution(half NdotH, half roughness)
 {
     half roughnessSqr = roughness * roughness;
     half Distribution = NdotH * NdotH * (roughnessSqr - 1.0) + 1.0;
-    return roughnessSqr / (3.1415926535 * Distribution * Distribution);
+    return SafeDiv( roughnessSqr, (PI * Distribution * Distribution));
 }
 
-half3 FunnyLightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specular, half roughness)
+half3 FunnyLightingSpecular(half3 lightDir, half3 normal, half3 viewDir, half4 specular, half roughness)
 {
     float3 halfVec = SafeNormalize(float3(lightDir) + float3(viewDir));
     half NdotH = half(saturate(dot(normal, halfVec)));
     half specularTerm = TrowbridgeReitzNormalDistribution(NdotH, roughness);
-    return specularTerm * specular.rgb * lightColor.rgb;
+    return specularTerm * specular.rgb;
 }
 
 half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-    half3 lightDiffuseColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+    half3 radiance = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
 
-    half3 lightSpecularColor = half3(0, 0, 0);
     half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
     half roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), HALF_MIN_SQRT);
-    lightSpecularColor += FunnyLightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), roughness);
+    half3 lightSpecularColor = FunnyLightingSpecular(light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), roughness);
 
     #if _ALPHAPREMULTIPLY_ON
-        return lightDiffuseColor * surfaceData.albedo * surfaceData.alpha + lightSpecularColor;
+        return radiance * (surfaceData.albedo * surfaceData.alpha + lightSpecularColor);
     #else
-    return lightDiffuseColor * surfaceData.albedo + lightSpecularColor;
+        return radiance * (surfaceData.albedo + lightSpecularColor);
     #endif
 }
 
@@ -91,7 +90,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     {
         lightingData.mainLightColor += CalculateFunnyBlinnPhong(mainLight, inputData, surfaceData);
     }
-
+    
     #if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
