@@ -42,11 +42,20 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
         [Serializable, ReloadGroup]
         public sealed class ShaderResources {
+            [Reload("Shaders/Utils/CopyDepth.shader")]
+            public Shader copyDepthPS;
+            
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
         }
-
         public ShaderResources shaderResources = null;
+
+        [Serializable, ReloadGroup]
+        public sealed class MeshResources {
+            [Reload("Shaders/Funnyland/DecalBox/DecalBox.mesh"), SerializeField]
+            static internal Mesh decalBox;
+        }
+        public MeshResources meshResources = null;
 
         [SerializeField] string[] m_ShaderTagLightModes;
         public ShaderTagId[] shaderTagIds {
@@ -119,8 +128,7 @@ namespace SoFunny.Rendering.Funnyland {
             /*
             if (postProcessData != null) {}
                 ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-                */
-
+            */
 #endif
         }
         public void OnAfterDeserialize() {

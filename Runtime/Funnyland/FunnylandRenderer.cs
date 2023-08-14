@@ -27,12 +27,14 @@ namespace SoFunny.Rendering.Funnyland {
         internal RTHandle m_ActiveCameraColorAttachment;
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
+        internal RTHandle m_DepthTexture;
         StencilState m_DefaultStencilState;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        CopyDepthPass m_CopyDepthPass;
         FinalBlitPass m_FinalBlitPass;
         bool m_DepthPrimingRecommended;
         CopyDepthMode m_CopyDepthMode;
@@ -40,7 +42,9 @@ namespace SoFunny.Rendering.Funnyland {
         bool m_Clustering;
         ForwardLights m_ForwardLights;
         LightCookieManager m_LightCookieManager;
+
         Material m_BlitMaterial = null;
+        Material m_CopyDepthMaterial = null;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
@@ -48,6 +52,7 @@ namespace SoFunny.Rendering.Funnyland {
             SetDefaultStencilState(stencilData);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
 
             UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
 
@@ -82,6 +87,12 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+
+            m_CopyDepthPass = new CopyDepthPass(
+                RenderPassEvent.AfterRenderingSkybox,
+                m_CopyDepthMaterial,
+                shouldClear: true,
+                copyResolvedDepth: false);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
@@ -105,9 +116,8 @@ namespace SoFunny.Rendering.Funnyland {
             m_ForwardLights.PreSetup(ref renderingData);
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             var cmd = renderingData.commandBuffer;
-            var colorDescriptor = cameraTargetDescriptor;
+
 
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
 #if UNITY_EDITOR
@@ -115,7 +125,8 @@ namespace SoFunny.Rendering.Funnyland {
 #else
             bool isGizmosEnabled = false;
 #endif
-            // buffer size
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+            var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
@@ -123,10 +134,16 @@ namespace SoFunny.Rendering.Funnyland {
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            
+
+            bool requiresDepthTexture = cameraData.requiresDepthTexture;
+            bool createDepthTexture = requiresDepthTexture;
+            createDepthTexture |= !cameraData.resolveFinalTarget;
+
+            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture;
+
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
-                bool intermediateRenderTexture = !sceneViewFilterEnabled;
+                bool intermediateRenderTexture = createDepthTexture || !sceneViewFilterEnabled;
 
                 if (intermediateRenderTexture) {
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
@@ -147,20 +164,34 @@ namespace SoFunny.Rendering.Funnyland {
 
             // 更改渲染目标至新的 color 和 depth buffer
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-            
+
             #region shadows pass
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
 
+            /* 暂无需支持附加光阴影
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            */
             #endregion
-            
+
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
+            // 分配 m_DepthTexture 内存
+            var depthDescriptor = cameraTargetDescriptor;
+            depthDescriptor.graphicsFormat = GraphicsFormat.None;
+            depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+            depthDescriptor.depthBufferBits = k_DepthBufferBits;
+            depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+            RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+            cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
 
             #region opaque pass
             RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
-            RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.DontCare;
+            // 因为需要 copy depth，所以保存 store action，否则 don't care 才是性能之道
+            RenderBufferStoreAction opaquePassDepthStoreAction = RenderBufferStoreAction.Store;
             DrawObjectsPass renderOpaqueForwardPass = null;
             renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
             renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
@@ -175,6 +206,13 @@ namespace SoFunny.Rendering.Funnyland {
                 if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null)) {
                     EnqueuePass(m_DrawSkyboxPass);
                 }
+            }
+            #endregion
+
+            #region  copyDepth pass
+            if (requiresDepthCopyPass) {
+                m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                EnqueuePass(m_CopyDepthPass);
             }
             #endregion
 
@@ -232,6 +270,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_CameraDepthAttachment?.Release();
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
+            m_DepthTexture?.Release();
             hasReleasedRTs = true;
         }
 
@@ -241,16 +280,16 @@ namespace SoFunny.Rendering.Funnyland {
             ReleaseRenderTargets();
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_CopyDepthMaterial);
         }
-        
-                /// <inheritdoc />
+
+        /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
-            ref CameraData cameraData)
-        {
+            ref CameraData cameraData) {
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
-            
+
             // if (renderingModeActual == RenderingMode.ForwardPlus)
             cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
 
@@ -259,11 +298,10 @@ namespace SoFunny.Rendering.Funnyland {
             // or the shadow distance has been turned down to zero
             bool isShadowCastingDisabled = !UniversalRenderPipeline.asset.supportsMainLightShadows && !UniversalRenderPipeline.asset.supportsAdditionalLightShadows;
             bool isShadowDistanceZero = Mathf.Approximately(cameraData.maxShadowDistance, 0.0f);
-            if (isShadowCastingDisabled || isShadowDistanceZero)
-            {
+            if (isShadowCastingDisabled || isShadowDistanceZero) {
                 cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
             }
-            
+
             // We set the number of maximum visible lights allowed and we add one for the mainlight...
             //
             // Note: However ScriptableRenderContext.Cull() does not differentiate between light types.
