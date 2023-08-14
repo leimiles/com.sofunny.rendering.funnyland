@@ -22,6 +22,21 @@ namespace SoFunny.Rendering.Funnyland {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
 #endif
+        
+        public override int SupportedCameraStackingTypes()
+        {
+            switch (m_RenderingMode)
+            {
+                case RenderingMode.Forward:
+                case RenderingMode.ForwardPlus:
+                    return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+                case RenderingMode.Deferred:
+                    return 1 << (int)CameraRenderType.Base;
+                default:
+                    return 0;
+            }
+        }
+        
         const int k_FinalBlitPassQueueOffset = 1;
         internal RenderTargetBufferSystem m_ColorBufferSystem;
         internal RTHandle m_ActiveCameraColorAttachment;
