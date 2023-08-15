@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.Universal
             bool componentExists = gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData);
             if (!componentExists)
                 cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
+
             return cameraData;
         }
 
@@ -168,6 +169,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
             if (cameraData.volumeFrameworkUpdateMode == mode)
                 return;
+
             bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
 
@@ -305,8 +307,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField]
         CameraOverrideOption m_RequiresDepthTextureOption = CameraOverrideOption.UsePipelineSettings;
-        [SerializeField]
-        CameraOverrideOption m_RequiresDepthTextureOptionOverlay = CameraOverrideOption.Off;
+
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
@@ -758,15 +759,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
-            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData);
-            if (componentExists) {
-                if (cameraData.renderType == CameraRenderType.Overlay) {
-                    bool audioListenerExists = gameObject.TryGetComponent<AudioListener>(out var audioListener);
-                    if (audioListenerExists) {
-                        UnityEngine.Object.DestroyImmediate(audioListener);
-                    }
-                }
-            }
         }
 
         /// <inheritdoc/>
