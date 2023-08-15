@@ -23,6 +23,7 @@ MonoBehaviour:
     coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
   m_ShaderTagLightModes:
   - FunnylandMobileForward
+  m_SharedProfile: {fileID: 11400000, guid: e838a479971283d4aa8d3bc6157783b3, type: 2}
   m_FrameLimit: 60
   m_OpaqueLayerMask:
     serializedVersion: 2

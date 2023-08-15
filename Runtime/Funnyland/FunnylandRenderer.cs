@@ -45,6 +45,8 @@ namespace SoFunny.Rendering.Funnyland {
 
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
+        ColorCurves m_ColorCurves;
+
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
@@ -96,6 +98,9 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
+
+            m_ColorCurves = data.GetColorCurveComponent();
+
         }
 
         void SetDefaultStencilState(StencilStateData stencilData) {

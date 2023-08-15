@@ -44,7 +44,7 @@ namespace SoFunny.Rendering.Funnyland {
         public sealed class ShaderResources {
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
-            
+
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
         }
@@ -70,6 +70,15 @@ namespace SoFunny.Rendering.Funnyland {
                     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnylandTest") };
                     return shaderTagIds;
                 }
+            }
+        }
+
+        [SerializeField] VolumeProfile m_SharedProfile;
+        public ColorCurves GetColorCurveComponent() {
+            if (m_SharedProfile.components.Count > 0) {
+                return m_SharedProfile.components[0] as ColorCurves;
+            } else {
+                return null;
             }
         }
 
