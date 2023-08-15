@@ -161,7 +161,7 @@ namespace SoFunny.Rendering.Funnyland {
             bool createDepthTexture = requiresDepthTexture;
             createDepthTexture |= !cameraData.resolveFinalTarget;
 
-            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture;
+            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType ==CameraRenderType.Base;
 
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
