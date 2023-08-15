@@ -112,7 +112,8 @@ namespace UnityEditor.Rendering.Universal
                 PostProcessingWarningDrawer,
                 CED.Group(
                     DrawerRenderingClearDepth,
-                    DrawerRenderingRenderShadows,
+                    // Overlay 相机强行关闭阴影渲染（FunnyRender中对阴影Pass进行判断）
+                    //DrawerRenderingRenderShadows,
                     DrawerRenderingDepthTexture
                 )
             );

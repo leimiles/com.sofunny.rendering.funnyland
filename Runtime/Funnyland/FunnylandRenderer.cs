@@ -104,7 +104,6 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-
             m_CopyDepthPass = new CopyDepthPass(
                 RenderPassEvent.AfterRenderingSkybox,
                 m_CopyDepthMaterial,
@@ -151,9 +150,12 @@ namespace SoFunny.Rendering.Funnyland {
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
-
-            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
-            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            
+            // OverlayCamera 不开启阴影
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData) && cameraData.renderType != CameraRenderType.Overlay;
+            
+            // 暂无需支持附加光阴影
+            // bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool createDepthTexture = requiresDepthTexture;
