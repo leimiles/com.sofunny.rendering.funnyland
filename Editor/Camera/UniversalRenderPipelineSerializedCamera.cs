@@ -23,7 +23,8 @@ namespace UnityEditor.Rendering.Universal
 
         // URP specific properties
         public SerializedProperty renderShadows { get; }
-        public SerializedProperty renderDepth { get; }
+        public SerializedProperty renderDepth { get; set; }
+        public SerializedProperty renderDepthOverlay { get; }
         public SerializedProperty renderOpaque { get; }
         public SerializedProperty renderer { get; }
         public SerializedProperty cameraType { get; }
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.Universal
             // URP specific properties
             renderShadows = serializedAdditionalDataObject.FindProperty("m_RenderShadows");
             renderDepth = serializedAdditionalDataObject.FindProperty("m_RequiresDepthTextureOption");
+            renderDepthOverlay = serializedAdditionalDataObject.FindProperty("m_RequiresDepthTextureOptionOverlay");
             renderOpaque = serializedAdditionalDataObject.FindProperty("m_RequiresOpaqueTextureOption");
             renderer = serializedAdditionalDataObject.FindProperty("m_RendererIndex");
             volumeLayerMask = serializedAdditionalDataObject.FindProperty("m_VolumeLayerMask");
