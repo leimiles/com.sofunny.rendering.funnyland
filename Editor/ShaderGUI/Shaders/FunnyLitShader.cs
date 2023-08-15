@@ -76,24 +76,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
 
             //Transparent BlendMode 强制设置为 Alpha
-            if (surfaceTypeProp != null && surfaceTypeProp.floatValue == 1)
+            if (surfaceTypeProp != null)
             {
-                if (blendModeProp != null)
+                if (surfaceTypeProp.floatValue == 1)
                 {
-                    blendModeProp.floatValue = 0;
-                }
+                    if (blendModeProp != null)
+                    {
+                        blendModeProp.floatValue = 0;
+                    }
 
-                if (preserveSpecProp != null)
+                    if (preserveSpecProp != null)
+                    {
+                        preserveSpecProp.floatValue = 0;
+                    }
+                
+                    if (receiveShadowsProp != null)
+                    {
+                        receiveShadowsProp.floatValue = 0;
+                    }
+                }
+                else
                 {
-                    preserveSpecProp.floatValue = 0;
+                    if (receiveShadowsProp != null)
+                    {
+                        receiveShadowsProp.floatValue = 1;
+                    }
                 }
             }
 
-            if (receiveShadowsProp != null)
-            {
-                receiveShadowsProp.floatValue = 0;
-            }
-            
             DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
             DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
             
