@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.Universal
                     DrawerRenderingClearDepth,
                     // Overlay 相机强行关闭阴影渲染（FunnyRender中对阴影Pass进行判断）
                     //DrawerRenderingRenderShadows,
-                    DrawerRenderingDepthTextureOverlayCamera
+                    DrawerRenderingDepthTexture
                 )
             );
 
@@ -292,13 +292,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(p.renderDepth, Styles.requireDepthTexture);
             }
-            
-            static void DrawerRenderingDepthTextureOverlayCamera(UniversalRenderPipelineSerializedCamera p, Editor owner)
-            {
-                EditorGUILayout.PropertyField(p.renderDepthOverlay, Styles.requireDepthTexture);
-                p.renderDepth = p.renderDepthOverlay;
-            }
-            
+
             static void DrawerRenderingOpaqueTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.renderOpaque, Styles.requireOpaqueTexture);
