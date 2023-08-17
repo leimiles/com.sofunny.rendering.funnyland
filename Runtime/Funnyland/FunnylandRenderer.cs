@@ -214,16 +214,17 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
-            
+
+            cameraData.postProcessEnabled = false;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             if (m_postProssType == PostProssType.Off) {
                 cameraData.postProcessEnabled = false;
             }
-            if (m_postProssType == PostProssType.lastCamera && !lastCameraInTheStack) {
-                cameraData.postProcessEnabled = false;
+            if (m_postProssType == PostProssType.lastCamera && lastCameraInTheStack) {
+                cameraData.postProcessEnabled = true;
             }
-            if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType != CameraRenderType.Base) {
-                cameraData.postProcessEnabled = false;
+            if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base) {
+                cameraData.postProcessEnabled = true;
             }
             
             #region LUT
