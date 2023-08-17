@@ -56,6 +56,7 @@ namespace SoFunny.Rendering.Funnyland {
             static internal Mesh decalBox;
         }
 
+        [SerializeField] public PostProssType postProssType = PostProssType.BaseCamera;
         public PostProcessData postProcessData;
 
         public MeshResources meshResources = null;
@@ -79,15 +80,6 @@ namespace SoFunny.Rendering.Funnyland {
         [SerializeField] VolumeProfile m_SharedProfile;
         // Default VolumeData
         [SerializeField] VolumeStack m_SharedStack { get => VolumeManager.instance.CreateStack(); }
-
-        public ColorCurves GetColorCurveComponent() {
-            if (m_SharedProfile.components.Count > 0) {
-                return m_SharedProfile.components[0] as ColorCurves;
-            } else {
-                return null;
-            }
-        }
-        
         public VolumeProfile GetVolumePrpfile() {
             return m_SharedProfile;
         }
@@ -160,6 +152,22 @@ namespace SoFunny.Rendering.Funnyland {
         public void OnBeforeSerialize() {
 
         }
-
+    }
+    
+    public enum PostProssType {
+        /// <summary>
+        /// 不开启PostPross
+        /// </summary>
+        Off,
+            
+        /// <summary>
+        /// BaseCamera 开启 PostPross
+        /// </summary>
+        BaseCamera,
+            
+        /// <summary>
+        /// 相机堆栈的最后一个相机开启PostPross
+        /// </summary>
+        lastCamera,
     }
 }

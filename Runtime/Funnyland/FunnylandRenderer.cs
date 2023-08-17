@@ -68,6 +68,7 @@ namespace SoFunny.Rendering.Funnyland {
         internal FunnyPostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
+        PostProssType m_postProssType;
         PostVolumeData m_volumeData;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
@@ -131,6 +132,7 @@ namespace SoFunny.Rendering.Funnyland {
                 m_PostProcessPasses = new FunnyPostProcessPasses(data.postProcessData, ref postProcessParams);
             }
             m_volumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
+            m_postProssType = data.postProssType;
         }
 
         void SetDefaultStencilState(StencilStateData stencilData) {
@@ -166,7 +168,7 @@ namespace SoFunny.Rendering.Funnyland {
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
-            
+
             // OverlayCamera 不开启阴影
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData) && cameraData.renderType != CameraRenderType.Overlay;
             
@@ -212,7 +214,17 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
+            
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+            if (m_postProssType == PostProssType.Off) {
+                cameraData.postProcessEnabled = false;
+            }
+            if (m_postProssType == PostProssType.lastCamera && !lastCameraInTheStack) {
+                cameraData.postProcessEnabled = false;
+            }
+            if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType != CameraRenderType.Base) {
+                cameraData.postProcessEnabled = false;
+            }
             
             #region LUT
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -272,19 +284,8 @@ namespace SoFunny.Rendering.Funnyland {
             EnqueuePass(m_RenderTransparentForwardPass);
             #endregion
 
-            // if (lastCameraInTheStack) {
-            //     var sourceForFinalPass = m_ActiveCameraColorAttachment;
-            //     #region  final blit
-            //     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
-            //     EnqueuePass(m_FinalBlitPass);
-            //     #endregion
-            // }
-
             #region post processing
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-
-            // There's at least a camera in the camera stack that applies post-processing
-            bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
             bool applyFinalPostProcessing = false;
             bool resolvePostProcessingToCameraTarget = !applyFinalPostProcessing;
             
@@ -418,6 +419,32 @@ namespace SoFunny.Rendering.Funnyland {
 
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
+        
+        internal override void SwapColorBuffer(CommandBuffer cmd)
+        {
+            m_ColorBufferSystem.Swap();
+
+            //Check if we are using the depth that is attached to color buffer
+            if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+            else
+                ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+
+            m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
+            cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
+            //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
+            cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
+        }
+
+        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
+        {
+            return m_ColorBufferSystem.GetFrontBuffer(cmd);
+        }
+
+        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
+        {
+            return m_ColorBufferSystem.GetBackBuffer(cmd);
+        }
 
         float GetAdaptedScale() {
             float sideLength = (float)Mathf.Min(Screen.width, Screen.height);
@@ -464,6 +491,5 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
 #endif
         }
-
     }
 }

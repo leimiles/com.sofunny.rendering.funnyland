@@ -124,13 +124,25 @@ namespace SoFunny.Rendering.Funnyland
             m_AfterPostProcessColor?.Release();
             m_ColorGradingLut?.Release();
         }
-
         internal void ReleaseRenderTargets()
         {
             m_AfterPostProcessColor?.Release();
             m_PostProcessPass?.Dispose();
             m_FinalPostProcessPass?.Dispose();
             m_ColorGradingLut?.Release();
+        }
+        
+        /// <summary>
+        /// 判断是是否自定义 VolumeComponent 如果没有则使用默认即不开启对应效果
+        /// </summary>
+        public static void GetVolumeComponent<T>(PostVolumeData volumeData, out T volumeComponent) 
+            where T : VolumeComponent
+        {
+            if (volumeData.sharedProfile.TryGet(out T temp)) {
+                volumeComponent = temp;
+            } else {
+                volumeComponent = volumeData.sharedStack.GetComponent<T>();
+            }
         }
     }
 }

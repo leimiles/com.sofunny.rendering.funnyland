@@ -135,12 +135,7 @@ namespace SoFunny.Rendering.Funnyland
                 // Fetch all color grading settings
                 var stack = VolumeManager.instance.stack;
                 //soVolumeProfile.TryGet(out Tonemapping tonemapping)
-                ColorCurves curves;
-                if (volumeData.sharedProfile.TryGet(out ColorCurves colorCurves)) {
-                    curves = colorCurves;
-                } else {
-                    curves = stack.GetComponent<ColorCurves>();
-                }
+                FunnyPostProcessPasses.GetVolumeComponent(volumeData, out ColorCurves curves);
                 var channelMixer = stack.GetComponent<ChannelMixer>();
                 var colorAdjustments = stack.GetComponent<ColorAdjustments>();
                 var liftGammaGain = stack.GetComponent<LiftGammaGain>();
