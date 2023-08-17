@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace SoFunny.Rendering.Funnyland {
     [CustomEditor(typeof(FunnylandMobileRendererData), true)]
@@ -16,14 +17,21 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_LightModes;
         SerializedProperty m_FrameLimit;
         SerializedProperty m_SharedProfile;
-        List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
+        SerializedProperty m_PostProcessData;
+
+        //List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
         private void OnEnable() {
             m_LightModes = serializedObject.FindProperty("m_ShaderTagLightModes");
             m_FrameLimit = serializedObject.FindProperty("m_FrameLimit");
             m_SharedProfile = serializedObject.FindProperty("m_SharedProfile");
+            m_PostProcessData = serializedObject.FindProperty("postProcessData");
         }
         public override void OnInspectorGUI() {
             serializedObject.Update();
+            
+            // postProcessData 默认Data
+            if(m_PostProcessData.objectReferenceValue == null)
+                m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
             EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);

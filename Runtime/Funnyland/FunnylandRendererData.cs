@@ -55,6 +55,9 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Funnyland/DecalBox/DecalBox.mesh"), SerializeField]
             static internal Mesh decalBox;
         }
+
+        public PostProcessData postProcessData;
+
         public MeshResources meshResources = null;
 
         [SerializeField] string[] m_ShaderTagLightModes;
@@ -74,12 +77,23 @@ namespace SoFunny.Rendering.Funnyland {
         }
 
         [SerializeField] VolumeProfile m_SharedProfile;
+        // Default VolumeData
+        [SerializeField] VolumeStack m_SharedStack { get => VolumeManager.instance.CreateStack(); }
+
         public ColorCurves GetColorCurveComponent() {
             if (m_SharedProfile.components.Count > 0) {
                 return m_SharedProfile.components[0] as ColorCurves;
             } else {
                 return null;
             }
+        }
+        
+        public VolumeProfile GetVolumePrpfile() {
+            return m_SharedProfile;
+        }
+        
+        public VolumeStack GetVolumeStack() {
+            return m_SharedStack;
         }
 
         public enum FrameLimit {

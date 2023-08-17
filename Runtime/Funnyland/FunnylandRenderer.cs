@@ -22,7 +22,7 @@ namespace SoFunny.Rendering.Funnyland {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
 #endif
-        
+
         public override int SupportedCameraStackingTypes()
         {
             switch (m_RenderingMode)
@@ -60,8 +60,15 @@ namespace SoFunny.Rendering.Funnyland {
 
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
-        ColorCurves m_ColorCurves;
+        
+        
+        FunnyPostProcessPasses m_PostProcessPasses;
+        internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
+        internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal FunnyPostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
+        PostVolumeData m_volumeData;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
@@ -113,8 +120,17 @@ namespace SoFunny.Rendering.Funnyland {
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
-            m_ColorCurves = data.GetColorCurveComponent();
+            {
+                var postProcessParams = PostProcessParams.Create();
+                postProcessParams.blitMaterial = m_BlitMaterial;
+                postProcessParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                var asset = UniversalRenderPipeline.asset;
+                if (asset)
+                    postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
 
+                m_PostProcessPasses = new FunnyPostProcessPasses(data.postProcessData, ref postProcessParams);
+            }
+            m_volumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
         }
 
         void SetDefaultStencilState(StencilStateData stencilData) {
@@ -196,8 +212,18 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
-
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+            
+            #region LUT
+            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            if (generateColorGradingLUT)
+            {
+                colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
+                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
+                colorGradingLutPass.Setup(colorGradingLut, m_volumeData);
+                EnqueuePass(colorGradingLutPass);
+            }
+            #endregion
 
             // 分配 m_DepthTexture 内存
             var depthDescriptor = cameraTargetDescriptor;
@@ -246,13 +272,69 @@ namespace SoFunny.Rendering.Funnyland {
             EnqueuePass(m_RenderTransparentForwardPass);
             #endregion
 
-            if (lastCameraInTheStack) {
-                var sourceForFinalPass = m_ActiveCameraColorAttachment;
-                #region  final blit
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
-                EnqueuePass(m_FinalBlitPass);
-                #endregion
+            // if (lastCameraInTheStack) {
+            //     var sourceForFinalPass = m_ActiveCameraColorAttachment;
+            //     #region  final blit
+            //     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
+            //     EnqueuePass(m_FinalBlitPass);
+            //     #endregion
+            // }
+
+            #region post processing
+            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+
+            // There's at least a camera in the camera stack that applies post-processing
+            bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
+            bool applyFinalPostProcessing = false;
+            bool resolvePostProcessingToCameraTarget = !applyFinalPostProcessing;
+            
+            bool needsColorEncoding = true;
+            if (applyPostProcessing)
+            {
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
+            
+            if (lastCameraInTheStack)
+            {
+                // Post-processing will resolve to final target. No need for final blit pass.
+                if (applyPostProcessing)
+                {
+                    // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
+                    bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, applyFinalPostProcessing, doSRGBEncoding);
+                    EnqueuePass(postProcessPass);
+                }
+
+                var sourceForFinalPass = m_ActiveCameraColorAttachment;
+
+                // Do FXAA or any other final post-processing effect that might need to run after AA.
+                if (applyFinalPostProcessing)
+                {
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true, needsColorEncoding);
+                    EnqueuePass(finalPostProcessPass);
+                }
+
+                bool cameraTargetResolved =
+                    // final PP always blit to camera target
+                    applyFinalPostProcessing ||
+                    // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
+                    applyPostProcessing;
+
+                // We need final blit to resolve to screen
+                if (!cameraTargetResolved)
+                {
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
+                    EnqueuePass(m_FinalBlitPass);
+                }
+            }
+            // stay in RT so we resume rendering on stack after post-processing
+            else if (applyPostProcessing)
+            {
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, false, false);
+                EnqueuePass(postProcessPass);
+            }
+            #endregion
 
         }
 
