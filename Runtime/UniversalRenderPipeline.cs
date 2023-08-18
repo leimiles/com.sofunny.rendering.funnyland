@@ -1080,7 +1080,7 @@ namespace UnityEngine.Rendering.Universal
                 // cameraData.isStopNaNEnabled = baseAdditionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
                 // cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
                 // cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
-                // cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
+                cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && XRSystem.displayActive;
                 cameraData.allowHDROutput = baseAdditionalCameraData.allowHDROutput;
             }
@@ -1091,7 +1091,7 @@ namespace UnityEngine.Rendering.Universal
                 // cameraData.isStopNaNEnabled = false;
                 // cameraData.isDitheringEnabled = false;
                 // cameraData.antialiasing = AntialiasingMode.None;
-                // cameraData.antialiasingQuality = AntialiasingQuality.High;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
                 cameraData.xrRendering = XRSystem.displayActive;
                 cameraData.allowHDROutput = true;
             }
@@ -1104,7 +1104,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
-                cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
             }
 
             ///////////////////////////////////////////////////////////////////
