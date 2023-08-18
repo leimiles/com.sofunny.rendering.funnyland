@@ -22,7 +22,11 @@ namespace SoFunny.Rendering.Funnyland {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
 #endif
+<<<<<<< Runtime/Funnyland/FunnylandRenderer.cs
 
+=======
+        
+>>>>>>> Runtime/Funnyland/FunnylandRenderer.cs
         public override int SupportedCameraStackingTypes()
         {
             switch (m_RenderingMode)
@@ -168,7 +172,11 @@ namespace SoFunny.Rendering.Funnyland {
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
+<<<<<<< Runtime/Funnyland/FunnylandRenderer.cs
 
+=======
+            
+>>>>>>> Runtime/Funnyland/FunnylandRenderer.cs
             // OverlayCamera 不开启阴影
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData) && cameraData.renderType != CameraRenderType.Overlay;
             
