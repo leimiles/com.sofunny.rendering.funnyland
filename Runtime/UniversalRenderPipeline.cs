@@ -1077,10 +1077,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.volumeLayerMask = baseAdditionalCameraData.volumeLayerMask;
                 cameraData.volumeTrigger = baseAdditionalCameraData.volumeTrigger == null ? baseCamera.transform : baseAdditionalCameraData.volumeTrigger;
-                cameraData.isStopNaNEnabled = baseAdditionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
-                cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
-                cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
-                cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
+                // cameraData.isStopNaNEnabled = baseAdditionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
+                // cameraData.isDitheringEnabled = baseAdditionalCameraData.dithering;
+                // cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
+                // cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
                 cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && XRSystem.displayActive;
                 cameraData.allowHDROutput = baseAdditionalCameraData.allowHDROutput;
             }
@@ -1088,12 +1088,23 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
+                // cameraData.isStopNaNEnabled = false;
+                // cameraData.isDitheringEnabled = false;
+                // cameraData.antialiasing = AntialiasingMode.None;
+                // cameraData.antialiasingQuality = AntialiasingQuality.High;
+                cameraData.xrRendering = XRSystem.displayActive;
+                cameraData.allowHDROutput = true;
+            }
+            
+                        
+            ///////////////////////////////////////////////////////////////////
+            // FunnyRender 默认不开启这些开关                                    /
+            ///////////////////////////////////////////////////////////////////
+            {
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
-                cameraData.antialiasingQuality = AntialiasingQuality.High;
-                cameraData.xrRendering = XRSystem.displayActive;
-                cameraData.allowHDROutput = true;
+                cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
             }
 
             ///////////////////////////////////////////////////////////////////
