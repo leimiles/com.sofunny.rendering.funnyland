@@ -1,4 +1,4 @@
-Shader "SoFunny/Funnyland/Particles/FunnyParticle"
+Shader "SoFunny/Funnyland/FunnyParticle"
 {
     Properties
     {
@@ -69,7 +69,7 @@ Shader "SoFunny/Funnyland/Particles/FunnyParticle"
         Pass
         {
             Name "ForwardLit"
-
+            Tags { "LightMode" = "FunnyLandMobileForward" }
             // -------------------------------------
             // Render State Commands
             BlendOp[_BlendOp]

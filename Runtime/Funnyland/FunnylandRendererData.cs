@@ -44,7 +44,7 @@ namespace SoFunny.Rendering.Funnyland {
         public sealed class ShaderResources {
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
-            
+
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
         }
@@ -55,6 +55,10 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Funnyland/DecalBox/DecalBox.mesh"), SerializeField]
             static internal Mesh decalBox;
         }
+
+        [SerializeField] public PostProssType postProssType = PostProssType.BaseCamera;
+        public PostProcessData postProcessData;
+
         public MeshResources meshResources = null;
 
         [SerializeField] string[] m_ShaderTagLightModes;
@@ -71,6 +75,17 @@ namespace SoFunny.Rendering.Funnyland {
                     return shaderTagIds;
                 }
             }
+        }
+
+        [SerializeField] VolumeProfile m_SharedProfile;
+        // Default VolumeData
+        [SerializeField] VolumeStack m_SharedStack { get => VolumeManager.instance.CreateStack(); }
+        public VolumeProfile GetVolumePrpfile() {
+            return m_SharedProfile;
+        }
+        
+        public VolumeStack GetVolumeStack() {
+            return m_SharedStack;
         }
 
         public enum FrameLimit {
@@ -137,6 +152,22 @@ namespace SoFunny.Rendering.Funnyland {
         public void OnBeforeSerialize() {
 
         }
-
+    }
+    
+    public enum PostProssType {
+        /// <summary>
+        /// 不开启PostPross
+        /// </summary>
+        Off,
+            
+        /// <summary>
+        /// BaseCamera 开启 PostPross
+        /// </summary>
+        BaseCamera,
+            
+        /// <summary>
+        /// 相机堆栈的最后一个相机开启PostPross
+        /// </summary>
+        lastCamera,
     }
 }
