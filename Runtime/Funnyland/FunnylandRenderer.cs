@@ -22,15 +22,8 @@ namespace SoFunny.Rendering.Funnyland {
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
         const int k_DepthBufferBits = 32;
 #endif
-<<<<<<< Runtime/Funnyland/FunnylandRenderer.cs
-
-=======
-        
->>>>>>> Runtime/Funnyland/FunnylandRenderer.cs
-        public override int SupportedCameraStackingTypes()
-        {
-            switch (m_RenderingMode)
-            {
+        public override int SupportedCameraStackingTypes() {
+            switch (m_RenderingMode) {
                 case RenderingMode.Forward:
                 case RenderingMode.ForwardPlus:
                     return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
@@ -40,7 +33,7 @@ namespace SoFunny.Rendering.Funnyland {
                     return 0;
             }
         }
-        
+
         const int k_FinalBlitPassQueueOffset = 1;
         internal RenderTargetBufferSystem m_ColorBufferSystem;
         internal RTHandle m_ActiveCameraColorAttachment;
@@ -64,8 +57,8 @@ namespace SoFunny.Rendering.Funnyland {
 
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
-        
-        
+
+
         FunnyPostProcessPasses m_PostProcessPasses;
         internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
@@ -172,14 +165,9 @@ namespace SoFunny.Rendering.Funnyland {
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
-<<<<<<< Runtime/Funnyland/FunnylandRenderer.cs
-
-=======
-            
->>>>>>> Runtime/Funnyland/FunnylandRenderer.cs
             // OverlayCamera 不开启阴影
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData) && cameraData.renderType != CameraRenderType.Overlay;
-            
+
             // 暂无需支持附加光阴影
             // bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 
@@ -187,7 +175,7 @@ namespace SoFunny.Rendering.Funnyland {
             bool createDepthTexture = requiresDepthTexture;
             createDepthTexture |= !cameraData.resolveFinalTarget;
 
-            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType ==CameraRenderType.Base;
+            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType == CameraRenderType.Base;
 
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
@@ -234,11 +222,10 @@ namespace SoFunny.Rendering.Funnyland {
             if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base) {
                 cameraData.postProcessEnabled = true;
             }
-            
+
             #region LUT
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-            if (generateColorGradingLUT)
-            {
+            if (generateColorGradingLUT) {
                 colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
                 colorGradingLutPass.Setup(colorGradingLut, m_volumeData);
@@ -297,19 +284,16 @@ namespace SoFunny.Rendering.Funnyland {
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool applyFinalPostProcessing = false;
             bool resolvePostProcessingToCameraTarget = !applyFinalPostProcessing;
-            
+
             bool needsColorEncoding = true;
-            if (applyPostProcessing)
-            {
+            if (applyPostProcessing) {
                 var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
-            
-            if (lastCameraInTheStack)
-            {
+
+            if (lastCameraInTheStack) {
                 // Post-processing will resolve to final target. No need for final blit pass.
-                if (applyPostProcessing)
-                {
+                if (applyPostProcessing) {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
                     bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
                     postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, applyFinalPostProcessing, doSRGBEncoding);
@@ -319,8 +303,7 @@ namespace SoFunny.Rendering.Funnyland {
                 var sourceForFinalPass = m_ActiveCameraColorAttachment;
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
-                if (applyFinalPostProcessing)
-                {
+                if (applyFinalPostProcessing) {
                     finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true, needsColorEncoding);
                     EnqueuePass(finalPostProcessPass);
                 }
@@ -332,15 +315,13 @@ namespace SoFunny.Rendering.Funnyland {
                     applyPostProcessing;
 
                 // We need final blit to resolve to screen
-                if (!cameraTargetResolved)
-                {
+                if (!cameraTargetResolved) {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
             }
             // stay in RT so we resume rendering on stack after post-processing
-            else if (applyPostProcessing)
-            {
+            else if (applyPostProcessing) {
                 postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, false, false);
                 EnqueuePass(postProcessPass);
             }
@@ -428,9 +409,8 @@ namespace SoFunny.Rendering.Funnyland {
 
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
-        
-        internal override void SwapColorBuffer(CommandBuffer cmd)
-        {
+
+        internal override void SwapColorBuffer(CommandBuffer cmd) {
             m_ColorBufferSystem.Swap();
 
             //Check if we are using the depth that is attached to color buffer
@@ -445,13 +425,11 @@ namespace SoFunny.Rendering.Funnyland {
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
         }
 
-        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
-        {
+        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd) {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
-        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
-        {
+        internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd) {
             return m_ColorBufferSystem.GetBackBuffer(cmd);
         }
 
