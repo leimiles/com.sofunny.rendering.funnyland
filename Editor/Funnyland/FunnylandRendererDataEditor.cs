@@ -33,16 +33,17 @@ namespace SoFunny.Rendering.Funnyland {
             serializedObject.Update();
             EditorGUILayout.Space();
             
+
+            EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
+            EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
+            
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PostProcessType, Styles.PostProssType);
             if (EditorGUI.EndChangeCheck()) {
                 if(m_PostProcessData.objectReferenceValue == null)
+                    // postProcessData 默认Data
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             }
-            // postProcessData 默认Data
-
-            EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
-            EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
             //EditorGUILayout.PropertyField(m_SharedProfile, Styles.VolumeProfile);     // 自定义 profile 不开放
             serializedObject.ApplyModifiedProperties();
         }
