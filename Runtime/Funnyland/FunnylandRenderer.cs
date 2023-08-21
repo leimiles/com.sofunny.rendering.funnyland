@@ -76,7 +76,10 @@ namespace SoFunny.Rendering.Funnyland {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
 
-            UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
+
+            if (UniversalRenderPipeline.asset != null) {
+                UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
+            }
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
