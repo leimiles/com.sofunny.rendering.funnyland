@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
+using System.IO;
 #endif
 using System;
 using UnityEngine;
@@ -14,15 +15,16 @@ namespace SoFunny.Rendering.Funnyland {
     [Serializable, ReloadGroup, ExcludeFromPreset]
     public class FunnylandMobileRendererData : ScriptableRendererData, ISerializationCallbackReceiver {
 #if UNITY_EDITOR
-        public static readonly string packagePath = "Packages/SoFunny.Rendering.Funnyland";
+        public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateFunnylandRendererAsset : EndNameEditAction {
             public override void Action(int instanceId, string pathName, string resourceFile) {
-                var instance = CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
+                var instance = CreateRendererAsset(pathName, false) as FunnylandMobileRendererData;
                 Selection.activeObject = instance;
             }
 
-            internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer") {
+            internal static ScriptableRendererData CreateRendererAsset(string path, bool relativePath = true, string suffix = "Renderer") {
+                /*
                 ScriptableRendererData data = CreateInstance<FunnylandMobileRendererData>();
                 string dataPath;
                 if (relativePath)
@@ -32,6 +34,31 @@ namespace SoFunny.Rendering.Funnyland {
                     dataPath = path;
                 AssetDatabase.CreateAsset(data, dataPath);
                 return data;
+                */
+                ScriptableRendererData data = CreateRendererData();
+                string dataPath;
+                if (relativePath)
+                    dataPath =
+                        $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
+                else
+                    dataPath = path;
+                AssetDatabase.CreateAsset(data, dataPath);
+                ResourceReloader.ReloadAllNullIn(data, packagePath);
+                LoadFunnylandResources(data as FunnylandMobileRendererData);
+                return data;
+            }
+
+            static void LoadFunnylandResources(FunnylandMobileRendererData data) {
+                #region  load volume profile
+                var path = System.IO.Path.Combine(packagePath, "Runtime/Materials/Funnyland/VolumeProfiles/Volume Profile Color Curves.asset");
+                data.m_SharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+                #endregion
+            }
+
+            static ScriptableRendererData CreateRendererData() {
+                var rendererData = CreateInstance<FunnylandMobileRendererData>();
+                rendererData.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                return rendererData;
             }
 
         }
@@ -71,7 +98,7 @@ namespace SoFunny.Rendering.Funnyland {
                     }
                     return shaderTagIds;
                 } else {
-                    ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnylandTest") };
+                    ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
                     return shaderTagIds;
                 }
             }
@@ -83,7 +110,7 @@ namespace SoFunny.Rendering.Funnyland {
         public VolumeProfile GetVolumePrpfile() {
             return m_SharedProfile;
         }
-        
+
         public VolumeStack GetVolumeStack() {
             return m_SharedStack;
         }
@@ -153,18 +180,18 @@ namespace SoFunny.Rendering.Funnyland {
 
         }
     }
-    
+
     public enum PostProssType {
         /// <summary>
         /// 不开启PostPross
         /// </summary>
         Off,
-            
+
         /// <summary>
         /// BaseCamera 开启 PostPross
         /// </summary>
         BaseCamera,
-            
+
         /// <summary>
         /// 相机堆栈的最后一个相机开启PostPross
         /// </summary>
