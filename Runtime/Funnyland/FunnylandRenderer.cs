@@ -76,7 +76,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
 
-            UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
+            ChangeAssetSettings();
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
@@ -130,6 +130,30 @@ namespace SoFunny.Rendering.Funnyland {
             }
             m_volumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
             m_postProssType = data.postProssType;
+        }
+
+        void ChangeAssetSettings() {
+            if (UniversalRenderPipeline.asset != null) {
+                UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
+                UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
+                UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = false;
+                UniversalRenderPipeline.asset.useSRPBatcher = true;
+                UniversalRenderPipeline.asset.supportsDynamicBatching = false;
+                UniversalRenderPipeline.asset.supportsHDR = false;
+                UniversalRenderPipeline.asset.msaaSampleCount = 1;
+                UniversalRenderPipeline.asset.upscalingFilter = UpscalingFilterSelection.Linear;
+                UniversalRenderPipeline.asset.additionalLightsRenderingMode = LightRenderingMode.Disabled;
+                UniversalRenderPipeline.asset.supportsAdditionalLightShadows = false;
+                UniversalRenderPipeline.asset.reflectionProbeBlending = true;
+                UniversalRenderPipeline.asset.reflectionProbeBoxProjection = true;
+                UniversalRenderPipeline.asset.shadowDistance = 80;
+                UniversalRenderPipeline.asset.shadowCascadeCount = 1;
+                UniversalRenderPipeline.asset.supportsSoftShadows = true;
+                UniversalRenderPipeline.asset.softShadowQuality = SoftShadowQuality.Low;
+                UniversalRenderPipeline.asset.colorGradingMode = ColorGradingMode.LowDynamicRange;
+                UniversalRenderPipeline.asset.colorGradingLutSize = 16;
+            }
+
         }
 
         void SetDefaultStencilState(StencilStateData stencilData) {
