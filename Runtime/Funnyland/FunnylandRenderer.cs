@@ -148,8 +148,9 @@ namespace SoFunny.Rendering.Funnyland {
                 UniversalRenderPipeline.asset.reflectionProbeBoxProjection = true;
                 UniversalRenderPipeline.asset.shadowDistance = 50;
                 UniversalRenderPipeline.asset.shadowCascadeCount = 2;
-                //UniversalRenderPipeline.asset.cascade2Split = 9.9f;
-                //UniversalRenderPipeline.asset.cascadeBorder = 4.0f;
+                UniversalRenderPipeline.asset.cascade2Split = 0.199f;
+                UniversalRenderPipeline.asset.cascade3Split = Vector2.one;
+                UniversalRenderPipeline.asset.cascadeBorder = 0.1f;
                 UniversalRenderPipeline.asset.supportsSoftShadows = true;
                 UniversalRenderPipeline.asset.softShadowQuality = SoftShadowQuality.Medium;
                 UniversalRenderPipeline.asset.colorGradingMode = ColorGradingMode.LowDynamicRange;
