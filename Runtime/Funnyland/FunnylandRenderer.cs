@@ -142,14 +142,16 @@ namespace SoFunny.Rendering.Funnyland {
                 UniversalRenderPipeline.asset.supportsHDR = false;
                 UniversalRenderPipeline.asset.msaaSampleCount = 1;
                 UniversalRenderPipeline.asset.upscalingFilter = UpscalingFilterSelection.Linear;
-                UniversalRenderPipeline.asset.additionalLightsRenderingMode = LightRenderingMode.Disabled;
+                UniversalRenderPipeline.asset.additionalLightsRenderingMode = LightRenderingMode.PerVertex;
                 UniversalRenderPipeline.asset.supportsAdditionalLightShadows = false;
                 UniversalRenderPipeline.asset.reflectionProbeBlending = true;
                 UniversalRenderPipeline.asset.reflectionProbeBoxProjection = true;
-                UniversalRenderPipeline.asset.shadowDistance = 80;
-                UniversalRenderPipeline.asset.shadowCascadeCount = 1;
+                UniversalRenderPipeline.asset.shadowDistance = 50;
+                UniversalRenderPipeline.asset.shadowCascadeCount = 2;
+                //UniversalRenderPipeline.asset.cascade2Split = 9.9f;
+                //UniversalRenderPipeline.asset.cascadeBorder = 4.0f;
                 UniversalRenderPipeline.asset.supportsSoftShadows = true;
-                UniversalRenderPipeline.asset.softShadowQuality = SoftShadowQuality.Low;
+                UniversalRenderPipeline.asset.softShadowQuality = SoftShadowQuality.Medium;
                 UniversalRenderPipeline.asset.colorGradingMode = ColorGradingMode.LowDynamicRange;
                 UniversalRenderPipeline.asset.colorGradingLutSize = 16;
             }
