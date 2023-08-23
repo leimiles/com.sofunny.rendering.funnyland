@@ -68,9 +68,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Controls the Roughness High Range.");
             public static GUIContent roughnessLowText = EditorGUIUtility.TrTextContent("Roughness Low",
                 "Controls the Roughness Low Range.");
-            
-            public static GUIContent metallicOffsetText = EditorGUIUtility.TrTextContent("Metallic Offset",
-                "Controls the Metallic Offset.");
 
             /// <summary>
             /// The text and tooltip for the smoothness source GUI.
@@ -155,7 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// <summary>
             /// The MaterialProperty for metallic value.
             /// </summary>
-            public MaterialProperty metallic;
+            // public MaterialProperty metallic;
 
             /// <summary>
             /// The MaterialProperty for specular color.
@@ -252,7 +249,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Surface Option Props
                 workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
                 // Surface Input Props
-                metallic = BaseShaderGUI.FindProperty("_MetallicOffset", properties);
+                //metallic = BaseShaderGUI.FindProperty("_MetallicOffset", properties);
                 specColor = BaseShaderGUI.FindProperty("_SpecColor", properties, false);
                 metallicGlossMap = BaseShaderGUI.FindProperty("_MixMap", properties);
                 specGlossMap = BaseShaderGUI.FindProperty("_SpecGlossMap", properties, false);
@@ -347,8 +344,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             materialEditor.TexturePropertySingleLine(Styles.metallicMapText, properties.metallicGlossMap);
 
-            DoMetallicOffset(materialEditor, material, properties.metallic);
-            DoRoughness(materialEditor, material, properties.roughnessHigh, properties.roughnessLow);
+            //DoRoughness(materialEditor, material, properties.roughnessHigh, properties.roughnessLow);
         }
 
         internal static bool IsOpaque(Material material)
@@ -359,20 +355,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return opaque;
         }
         
-        /// <summary>
-        /// Draws the smoothness GUI.
-        /// </summary>
-        /// <param name="materialEditor"></param>
-        /// <param name="material"></param>
-        /// <param name="metallicOffset"></param>
-        /// <param name="smoothnessChannelNames"></param>
-        public static void DoMetallicOffset(MaterialEditor materialEditor, Material material, MaterialProperty metallicOffset)
-        {
-            EditorGUI.indentLevel += 2;
-            materialEditor.ShaderProperty(metallicOffset, Styles.metallicOffsetText);
-            EditorGUI.indentLevel -= 2;
-        }
-
         public static void DoRoughness(MaterialEditor materialEditor, Material material, MaterialProperty roughnessHigh, MaterialProperty roughnessLow)
         {
             EditorGUI.indentLevel += 2;
