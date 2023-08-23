@@ -13,9 +13,8 @@ Shader "SoFunny/Funnyland/FunnyStyle"
         
         _MixMap("MixMap(R:Metallic G:AO B:RoughnessMask)", 2D) = "white" {}
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
-        _RoughnessHigh("Roughness High", Range(0.5, 1.0)) = 0.7
-        _RoughnessLow("Roughness Low", Range(0.0, 0.5)) = 0.2
-        _MetallicOffset("Metallic Offset", Range(-1.0, 1.0)) = -1.0
+        [HideInInspector]_RoughnessHigh("Roughness High", Range(0.5, 1.0)) = 0.8
+        [HideInInspector]_RoughnessLow("Roughness Low", Range(0.0, 0.5)) = 0.2
         
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0

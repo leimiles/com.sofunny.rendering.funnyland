@@ -10,7 +10,6 @@ CBUFFER_START(UnityPerMaterial)
     half4 _EmissionColor;
     half _Cutoff;
     half _Surface;
-    half _MetallicOffset;
     half _RoughnessHigh;
     half _RoughnessLow;
 CBUFFER_END
@@ -21,7 +20,6 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float4, _EmissionColor)
         UNITY_DOTS_INSTANCED_PROP(float , _Cutoff)
         UNITY_DOTS_INSTANCED_PROP(float , _Surface)
-        UNITY_DOTS_INSTANCED_PROP(float , _MetallicOffset)
         UNITY_DOTS_INSTANCED_PROP(float , _RoughnessHigh)
         UNITY_DOTS_INSTANCED_PROP(float , _RoughnessLow)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
@@ -30,7 +28,6 @@ CBUFFER_END
     #define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _EmissionColor)
     #define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _Cutoff)
     #define _Surface            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _Surface)
-    #define _MetallicOffset     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _MetallicOffset)
     #define _RoughnessHigh      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _RoughnessHigh)
     #define _RoughnessLow       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _RoughnessLow)
 #endif
@@ -46,7 +43,6 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     outSurfaceData.alpha = AlphaDiscard(outSurfaceData.alpha, _Cutoff);
 
     half4 mixMap = SAMPLE_TEXTURE2D(_MixMap, sampler_MixMap, uv);
-    mixMap.r = saturate(mixMap.r + _MetallicOffset);
     mixMap.b = saturate(lerp(_RoughnessLow, _RoughnessHigh, mixMap.b));
     
     outSurfaceData.metallic = mixMap.r;
