@@ -560,6 +560,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         [SerializeField] TextureResources m_Textures;
+        
+        // 不开放出来，仅用作画质分级 
+        [SerializeField] bool m_EnablePost = true;
+
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
@@ -1056,7 +1060,16 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsHDR; }
             set { m_SupportsHDR = value; }
         }
-
+        
+        /// <summary>
+        /// When enabled, the camera renders postprocess.
+        /// </summary>
+        public bool supportPost
+        {
+            get { return m_EnablePost; }
+            set { m_EnablePost = value; }
+        }
+        
         /// <summary>
         /// Graphics format requested for HDR color buffers.
         /// </summary>
