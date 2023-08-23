@@ -237,17 +237,19 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
-
-            cameraData.postProcessEnabled = false;
+            
+            //cameraData.postProcessEnabled = false;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             if (m_postProssType == PostProssType.Off) {
                 cameraData.postProcessEnabled = false;
             }
-            if (m_postProssType == PostProssType.lastCamera && lastCameraInTheStack) {
+            else if (m_postProssType == PostProssType.lastCamera && lastCameraInTheStack && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
             }
-            if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base) {
+            else if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
+            } else {
+                cameraData.postProcessEnabled = false;
             }
 
             #region LUT
