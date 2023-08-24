@@ -65,8 +65,8 @@ namespace SoFunny.Rendering.Funnyland {
         internal FunnyPostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
-        PostProssType m_postProssType;
-        PostVolumeData m_volumeData;
+        PostProssType m_PostProssType;
+        PostVolumeData m_VolumeData;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
@@ -87,8 +87,9 @@ namespace SoFunny.Rendering.Funnyland {
                 }
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
-
-            this.stripShadowsOffVariants = true;
+            
+            // 是否在开启阴影的时候剃齿Off阴影的变体
+            this.stripShadowsOffVariants = false;
             this.stripAdditionalLightOffVariants = true;
 #if ENABLE_VR && ENABLE_VR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID
@@ -128,8 +129,8 @@ namespace SoFunny.Rendering.Funnyland {
 
                 m_PostProcessPasses = new FunnyPostProcessPasses(data.postProcessData, ref postProcessParams);
             }
-            m_volumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
-            m_postProssType = data.postProssType;
+            m_VolumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
+            m_PostProssType = data.postProssType;
         }
 
         void ChangeAssetSettings() {
@@ -237,17 +238,19 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
-
-            cameraData.postProcessEnabled = false;
+            
+            //cameraData.postProcessEnabled = false;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
-            if (m_postProssType == PostProssType.Off) {
+            if (m_PostProssType == PostProssType.Off) {
                 cameraData.postProcessEnabled = false;
             }
-            if (m_postProssType == PostProssType.lastCamera && lastCameraInTheStack) {
+            else if (m_PostProssType == PostProssType.lastCamera && lastCameraInTheStack && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
             }
-            if (m_postProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base) {
+            else if (m_PostProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
+            } else {
+                cameraData.postProcessEnabled = false;
             }
 
             #region LUT
@@ -255,7 +258,7 @@ namespace SoFunny.Rendering.Funnyland {
             if (generateColorGradingLUT) {
                 colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
-                colorGradingLutPass.Setup(colorGradingLut, m_volumeData);
+                colorGradingLutPass.Setup(colorGradingLut, m_VolumeData);
                 EnqueuePass(colorGradingLutPass);
             }
             #endregion
@@ -323,7 +326,7 @@ namespace SoFunny.Rendering.Funnyland {
                 if (applyPostProcessing) {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
                     bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, applyFinalPostProcessing, doSRGBEncoding);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_VolumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, applyFinalPostProcessing, doSRGBEncoding);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -349,7 +352,7 @@ namespace SoFunny.Rendering.Funnyland {
             }
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing) {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_volumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_VolumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, false, false);
                 EnqueuePass(postProcessPass);
             }
             #endregion
