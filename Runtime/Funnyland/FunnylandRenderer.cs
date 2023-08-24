@@ -87,8 +87,9 @@ namespace SoFunny.Rendering.Funnyland {
                 }
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
-
-            this.stripShadowsOffVariants = true;
+            
+            // 是否在开启阴影的时候剃齿Off阴影的变体
+            this.stripShadowsOffVariants = false;
             this.stripAdditionalLightOffVariants = true;
 #if ENABLE_VR && ENABLE_VR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID

@@ -19,7 +19,7 @@ namespace SoFunny.Rendering.Funnyland {
                 return;
             }
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
-            //ShadowSetting(asset, data.shadow);
+            ShadowSetting(asset, data.shadow);
             ShadingQuality();
             PostSetting(asset, data.post);
             DecalSetting();
