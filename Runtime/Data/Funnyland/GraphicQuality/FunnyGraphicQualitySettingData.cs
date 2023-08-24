@@ -12,8 +12,9 @@ namespace SoFunny.Rendering.Funnyland {
         Eighth = 3
     }
     
-    [CreateAssetMenu(fileName = "GraphicQualitySettingData", menuName = "ScriptableObject/GraphicQualitySettingData", order = 0)]
-    public class GraphicQualitySettingData : ScriptableObject {
+    // 画质分级暂时不需data
+    // [CreateAssetMenu(fileName = "GraphicQualitySettingData", menuName = "ScriptableObject/GraphicQualitySettingData", order = 0)]
+    public class FunnyGraphicQualitySettingData : ScriptableObject {
 
         public bool shadow;
         public bool post;

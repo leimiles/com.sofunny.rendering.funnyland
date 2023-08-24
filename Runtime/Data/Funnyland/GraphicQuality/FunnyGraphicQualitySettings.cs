@@ -13,8 +13,8 @@ namespace SoFunny.Rendering.Funnyland {
         Low,
         Custom
     }
-    public static class GraphicQualitySettings {
-        public static void SetQualityPrefab(ref GraphicQualitySettingData data) {
+    public static class FunnyGraphicQualitySettings {
+        private static void SetQualityPrefab(ref FunnyGraphicQualitySettingData data) {
             if (data == null) {
                 return;
             }
@@ -27,36 +27,36 @@ namespace SoFunny.Rendering.Funnyland {
             AnisotropicTextureSetting(data.anisotropicTexture);
         }
 
-        public static void ShadowSetting(UniversalRenderPipelineAsset assets, bool isShadow) {
+        private static void ShadowSetting(UniversalRenderPipelineAsset assets, bool isShadow) {
             assets.supportsMainLightShadows = isShadow;
         }
-        public static void ShadowSetting(bool isShadow) {
+        private static void ShadowSetting(bool isShadow) {
             var assets = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             assets.supportsMainLightShadows = isShadow;
         }
         
-        public static void ShadingQuality() {
+        private static void ShadingQuality() {
 
         }
 
-        public static void PostSetting(UniversalRenderPipelineAsset assets, bool isPost) {
+        private static void PostSetting(UniversalRenderPipelineAsset assets, bool isPost) {
             assets.supportPost = isPost;
         }
-        public static void PostSetting(bool isPost) {
+        private static void PostSetting(bool isPost) {
             var assets = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             assets.supportPost = isPost;
         }
         
-        public static void DecalSetting() {
+        private static void DecalSetting() {
 
         }
 
-        public static void TextureQualitySetting(int level) {
+        private static void TextureQualitySetting(int level) {
             // 0:Full 1:half 2:Quarter 3:Eighth
             QualitySettings.globalTextureMipmapLimit = level;
         }
 
-        public static void AnisotropicTextureSetting(bool isAnisotropicTexture) {
+        private static void AnisotropicTextureSetting(bool isAnisotropicTexture) {
             if (isAnisotropicTexture) {
                 QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             } else {
@@ -67,7 +67,7 @@ namespace SoFunny.Rendering.Funnyland {
         /// <summary>
         /// 设置高配置数据
         /// </summary>
-        public static void SetHighQualitySetting(ref GraphicQualitySettingData data) {
+        private static void SetHighQualitySetting(ref FunnyGraphicQualitySettingData data) {
             data.post = true;
             data.shadow = true;
             data.globalTextureMipmapLevel = GlobalTextureMipmapLevel.Full;
@@ -78,7 +78,7 @@ namespace SoFunny.Rendering.Funnyland {
         /// <summary>
         /// 设置低配置数据
         /// </summary>
-        public static void SetLowQualitySetting(ref GraphicQualitySettingData data) {
+        private static void SetLowQualitySetting(ref FunnyGraphicQualitySettingData data) {
             data.post = false;
             data.shadow = false;
             data.globalTextureMipmapLevel = GlobalTextureMipmapLevel.Half;
@@ -89,7 +89,7 @@ namespace SoFunny.Rendering.Funnyland {
         /// <summary>
         /// 根据机型初始化默认配置以及设置高低配置
         /// </summary>
-        public static void SetDefaultQualitySetting(GraphicQuality quality, ref GraphicQualitySettingData data) {
+        private static void SetDefaultQualitySetting(GraphicQuality quality, ref FunnyGraphicQualitySettingData data) {
             switch (quality) {
                 case GraphicQuality.High:
                     SetHighQualitySetting(ref data); 
@@ -101,6 +101,50 @@ namespace SoFunny.Rendering.Funnyland {
                     SetQualityPrefab(ref data);
                     break;
             } 
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        /// 不使用data 直接进行赋值 只需要一个高和低的默认配置即可
+        /// <summary>
+        /// 根据机型初始化默认配置以及设置高低配置
+        /// </summary>
+        public static void SetDefaultQualitySetting(GraphicQuality quality) {
+            switch (quality) {
+                case GraphicQuality.High:
+                    SetHighQualitySetting(); 
+                    break;
+                case GraphicQuality.Low:
+                    SetLowQualitySetting();
+                    break;
+                default:
+                    break;
+            } 
+        }
+        
+        /// <summary>
+        /// 设置高配置数据
+        /// </summary>
+        public static void SetHighQualitySetting() {
+            var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            ShadowSetting(asset, true);
+            ShadingQuality();
+            PostSetting(asset, true);
+            DecalSetting();
+            TextureQualitySetting((int)GlobalTextureMipmapLevel.Full);
+            AnisotropicTextureSetting(true);
+        }
+        
+        /// <summary>
+        /// 设置低配置数据
+        /// </summary>
+        private static void SetLowQualitySetting() {
+            var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            ShadowSetting(asset, false);
+            ShadingQuality();
+            PostSetting(asset, false);
+            DecalSetting();
+            TextureQualitySetting((int)GlobalTextureMipmapLevel.Half);
+            AnisotropicTextureSetting(false);
         }
         
     }
