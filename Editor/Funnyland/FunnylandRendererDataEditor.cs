@@ -14,12 +14,20 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent FrameLimit = EditorGUIUtility.TrTextContent("帧率锁定: ", "当前的帧率 ultra = 60, standard = 30.");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("镜头效果: ", "只能调色，别的不开");
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
+            public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体和开启遮挡描边");
+            public static readonly GUIContent CharacterStencilLayerMask = EditorGUIUtility.TrTextContent("角色LayerMask: ", "该layer层可以开启遮挡描边");
+            public static readonly GUIContent Histogram = EditorGUIUtility.TrTextContent("色彩直方图: ", "开启色彩直方图debug");
         }
         SerializedProperty m_LightModes;
         SerializedProperty m_FrameLimit;
         SerializedProperty m_SharedProfile;
         SerializedProperty m_PostProcessType;
         SerializedProperty m_PostProcessData;
+        SerializedProperty m_OccluderStencilLayerMask;
+        SerializedProperty m_CharacterStencilLayerMask;
+        SerializedProperty m_Histogram;
+        
+        bool isDebug = true;
 
         //List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
         private void OnEnable() {
@@ -28,6 +36,9 @@ namespace SoFunny.Rendering.Funnyland {
             m_SharedProfile = serializedObject.FindProperty("m_SharedProfile");
             m_PostProcessType = serializedObject.FindProperty("postProssType");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
+            m_OccluderStencilLayerMask = serializedObject.FindProperty("m_OccluderStencilLayerMask");
+            m_CharacterStencilLayerMask = serializedObject.FindProperty("m_CharacterStencilLayerMask");
+            m_Histogram = serializedObject.FindProperty("m_Histogram");
         }
         public override void OnInspectorGUI() {
             serializedObject.Update();
@@ -43,6 +54,13 @@ namespace SoFunny.Rendering.Funnyland {
                 if(m_PostProcessData.objectReferenceValue == null)
                     // postProcessData 默认Data
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
+            }
+            EditorGUILayout.PropertyField(m_OccluderStencilLayerMask, Styles.OccluderStencilLayerMask);
+            EditorGUILayout.PropertyField(m_CharacterStencilLayerMask, Styles.CharacterStencilLayerMask);
+            
+            isDebug = EditorGUILayout.Foldout(isDebug, "Debug");
+            if (isDebug) {
+                EditorGUILayout.PropertyField(m_Histogram, Styles.Histogram);
             }
             //EditorGUILayout.PropertyField(m_SharedProfile, Styles.VolumeProfile);     // 自定义 profile 不开放
             serializedObject.ApplyModifiedProperties();
