@@ -18,7 +18,7 @@ half3 FunnyLightingSpecular(half3 lightDir, half3 normal, half3 viewDir, half4 s
     return specularTerm * specular.rgb;
 }
 
-half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
+half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, FunnySurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
     half3 radiance = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
@@ -34,11 +34,11 @@ half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, SurfaceData sur
     #endif
 }
 
-half3 CalculateEnvironmentSpecular(InputData inputData, SurfaceData surfaceData)
+half3 CalculateEnvironmentSpecular(InputData inputData, FunnySurfaceData surfaceData)
 {
     half3 reflectVector = reflect(-inputData.viewDirectionWS, inputData.normalWS);
     half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
-    half3 irradiance = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, perceptualRoughness, 1.0h, inputData.normalizedScreenSpaceUV);
+    half3 irradiance = GlossyEnvironmentReflection(reflectVector, inputData.positionWS, perceptualRoughness, surfaceData.indirectSpecularOcclusion, inputData.normalizedScreenSpaceUV);
 
     half NoV = saturate(dot(inputData.normalWS, inputData.viewDirectionWS));
     half fresnelTerm = Pow4(1.0 - NoV);
@@ -53,19 +53,48 @@ half3 CalculateEnvironmentSpecular(InputData inputData, SurfaceData surfaceData)
     return irradiance * irradianceMask;
 }
 
-half3 CalculateGI(InputData inputData, SurfaceData surfaceData)
+half3 CalculateGI(InputData inputData, FunnySurfaceData surfaceData)
 {
     half3 indirectSpecular = CalculateEnvironmentSpecular(inputData, surfaceData);
     half3 indirectDiffuse = inputData.bakedGI;
     return indirectDiffuse + indirectSpecular;
 }
 
-half4 FunnyFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
+LightingData CreateLightingData(InputData inputData, FunnySurfaceData surfaceData)
+{
+    LightingData lightingData;
+
+    lightingData.giColor = inputData.bakedGI;
+    lightingData.emissionColor = surfaceData.emission;
+    lightingData.vertexLightingColor = 0;
+    lightingData.mainLightColor = 0;
+    lightingData.additionalLightsColor = 0;
+
+    return lightingData;
+}
+
+void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData funnySurfaceData)
+{
+    debugSurfaceData.albedo = funnySurfaceData.albedo;
+    debugSurfaceData.specular = funnySurfaceData.specular;
+    debugSurfaceData.metallic = funnySurfaceData.metallic;
+    debugSurfaceData.smoothness = funnySurfaceData.smoothness;
+    debugSurfaceData.normalTS = funnySurfaceData.normalTS;
+    debugSurfaceData.emission = funnySurfaceData.emission;
+    debugSurfaceData.occlusion = funnySurfaceData.occlusion;
+    debugSurfaceData.alpha = funnySurfaceData.alpha;
+    debugSurfaceData.clearCoatMask = funnySurfaceData.clearCoatMask;
+    debugSurfaceData.clearCoatSmoothness = funnySurfaceData.clearCoatSmoothness;
+}
+
+half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
 
-    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    SurfaceData debugSurfaceData = (SurfaceData)0;
+    FillDebugSurfaceData(debugSurfaceData, surfaceData);
+    if (CanDebugOverrideOutputColor(inputData, debugSurfaceData, debugColor))
     {
         return debugColor;
     }
@@ -73,7 +102,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     uint meshRenderingLayers = GetMeshRenderingLayer();
     half4 shadowMask = CalculateShadowMask(inputData);
-    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData.normalizedScreenSpaceUV, surfaceData.occlusion);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, aoFactor);

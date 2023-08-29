@@ -20,7 +20,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
         
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
-        [HideInInspector]_BumpScale ("Normal Scale", Float) = 1.0
+        _BumpScale ("Normal Scale", Range(0.0, 2.0)) = 1.0
         
         [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
         [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
@@ -124,7 +124,6 @@ Shader "SoFunny/Funnyland/FunnyLit"
 
             //--------------------------------------
             // Defines
-            #define BUMP_SCALE_NOT_SUPPORTED 1
             #define _NORMALMAP
 
             // -------------------------------------
