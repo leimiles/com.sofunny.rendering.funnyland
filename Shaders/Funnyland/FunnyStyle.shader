@@ -13,14 +13,15 @@ Shader "SoFunny/Funnyland/FunnyStyle"
         
         _MixMap("MixMap(R:Metallic G:AO B:RoughnessMask)", 2D) = "white" {}
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
-        [HideInInspector]_RoughnessHigh("Roughness High", Range(0.5, 1.0)) = 0.65
-        [HideInInspector]_RoughnessLow("Roughness Low", Range(0.0, 0.5)) = 0.2
+        _RoughnessHigh("Roughness High", Range(0.5, 1.0)) = 0.65
+        _RoughnessLow("Roughness Low", Range(0.0, 0.5)) = 0.2
+        _IndirectSpecularOcclusion("Indirect Specular Occlusion", Range(0.0, 1.0)) = 0.5
         
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
         
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
-        [HideInInspector]_BumpScale ("Normal Scale", Float) = 1.0
+        _BumpScale ("Normal Scale", Range(0.0, 2.0)) = 1.0
         
         [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
         [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
@@ -124,7 +125,6 @@ Shader "SoFunny/Funnyland/FunnyStyle"
 
             //--------------------------------------
             // Defines
-            #define BUMP_SCALE_NOT_SUPPORTED 1
             #define _NORMALMAP
 
             // -------------------------------------

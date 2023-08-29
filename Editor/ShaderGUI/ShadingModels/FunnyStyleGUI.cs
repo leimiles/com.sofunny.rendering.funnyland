@@ -69,6 +69,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent roughnessLowText = EditorGUIUtility.TrTextContent("Roughness Low",
                 "Controls the Roughness Low Range.");
 
+            public static GUIContent indirectSpecularOcclusionText = EditorGUIUtility.TrTextContent("Indirect Specular Occlusion", "控制间接镜面反射的遮蔽情况");
+
             /// <summary>
             /// The text and tooltip for the smoothness source GUI.
             /// </summary>
@@ -171,6 +173,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             public MaterialProperty roughnessHigh;
             public MaterialProperty roughnessLow;
+            public MaterialProperty indirectSpecularOcclusion;
 
             /// <summary>
             /// The MaterialProperty for smoothness alpha channel.
@@ -255,6 +258,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 specGlossMap = BaseShaderGUI.FindProperty("_SpecGlossMap", properties, false);
                 roughnessHigh = BaseShaderGUI.FindProperty("_RoughnessHigh", properties, false);
                 roughnessLow = BaseShaderGUI.FindProperty("_RoughnessLow", properties, false);
+                indirectSpecularOcclusion = BaseShaderGUI.FindProperty("_IndirectSpecularOcclusion", properties, false);
                 smoothnessMapChannel = BaseShaderGUI.FindProperty("_SmoothnessTextureChannel", properties, false);
                 bumpMapProp = BaseShaderGUI.FindProperty("_BumpMap", properties, false);
                 bumpScaleProp = BaseShaderGUI.FindProperty("_BumpScale", properties, false);
@@ -283,6 +287,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             DoMetallicSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp, properties.bumpScaleProp);
+            DoIndirectSpecularOcclusion(materialEditor, material, properties.indirectSpecularOcclusion);
         }
 
         private static bool ClearCoatAvailable(Material material)
@@ -363,6 +368,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             materialEditor.ShaderProperty(roughnessLow, Styles.roughnessLowText);
 
             EditorGUI.indentLevel -= 2;
+        }
+
+        public static void DoIndirectSpecularOcclusion(MaterialEditor materialEditor, Material material, MaterialProperty indirectSpecularOcclusion)
+        {
+            EditorGUI.indentLevel += 2;
+
+            materialEditor.ShaderProperty(indirectSpecularOcclusion, Styles.indirectSpecularOcclusionText);
         }
 
         /// <summary>

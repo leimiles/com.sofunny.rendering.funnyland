@@ -700,11 +700,11 @@ namespace UnityEditor
             {
                 materialEditor.TexturePropertySingleLine(Styles.normalMapText, bumpMap,
                     bumpMap.textureValue != null ? bumpMapScale : null);
-                if (bumpMapScale.floatValue != 1 &&
-                    UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
-                        EditorUserBuildSettings.activeBuildTarget))
-                    if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNormalNow))
-                        bumpMapScale.floatValue = 1;
+                // if (bumpMapScale.floatValue != 1 &&
+                //     UnityEditorInternal.InternalEditorUtility.IsMobilePlatform(
+                //         EditorUserBuildSettings.activeBuildTarget))
+                //     if (materialEditor.HelpBoxWithButton(Styles.bumpScaleNotSupported, Styles.fixNormalNow))
+                //         bumpMapScale.floatValue = 1;
             }
             else
             {

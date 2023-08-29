@@ -176,7 +176,7 @@ void LitPassFragmentSimple(
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    SurfaceData surfaceData;
+    FunnySurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
 #ifdef LOD_FADE_CROSSFADE
