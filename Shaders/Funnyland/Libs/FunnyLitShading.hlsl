@@ -28,9 +28,9 @@ half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, SurfaceData sur
     half3 lightSpecularColor = FunnyLightingSpecular(light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), roughness);
 
     #if _ALPHAPREMULTIPLY_ON
-        return radiance * (surfaceData.albedo * surfaceData.alpha + lightSpecularColor);
+        return saturate(radiance * (surfaceData.albedo * surfaceData.alpha + lightSpecularColor));
     #else
-        return radiance * (surfaceData.albedo + lightSpecularColor);
+        return saturate(radiance * (surfaceData.albedo + lightSpecularColor));
     #endif
 }
 
