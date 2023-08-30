@@ -8,6 +8,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Assertions;
 
@@ -74,6 +75,15 @@ namespace SoFunny.Rendering.Funnyland {
 
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
+            
+            [Reload("Shaders/Funnyland/Utils/VfxEffects.shader"), SerializeField]
+            internal Shader vfxEffectsPS;
+            
+            [Reload("Shaders/Funnyland/Utils/Histogram.shader"), SerializeField]
+            internal Shader histogramPS;
+            
+            [Reload("Shaders/Funnyland/Utils/Histogram.compute"), SerializeField]
+            internal ComputeShader histogramComputerShader;
         }
         public ShaderResources shaderResources = null;
 
@@ -87,19 +97,44 @@ namespace SoFunny.Rendering.Funnyland {
         public PostProcessData postProcessData;
 
         public MeshResources meshResources = null;
-
+        
+        [SerializeField] LayerMask m_OccluderStencilLayerMask = 0;
+        [SerializeField] LayerMask m_CharacterStencilLayerMask = 0;
+        private RenderObjects.RenderObjectsSettings m_OccluderStencilData = new RenderObjects.RenderObjectsSettings();
+        private RenderObjects.RenderObjectsSettings m_CharacterStencilData = new RenderObjects.RenderObjectsSettings();
+        
+        [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
+        
         [SerializeField] string[] m_ShaderTagLightModes;
+        string[] m_DefaultShaderTagLightModes = new []{"FunnyLandMobileForward"};
+
         public ShaderTagId[] shaderTagIds {
             get {
+                // if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
+                //     ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
+                //     for (int i = 0; i < shaderTagIds.Length; ++i) {
+                //         shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
+                //     }
+                //     return shaderTagIds;
+                // } else {
+                //     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
+                //     return shaderTagIds;
+                // }
+                ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
+                for (int i = 0; i < shaderTagIds.Length; ++i) {
+                    shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
+                }
+
+                return shaderTagIds;
+            }
+        }
+
+        public string[] shaderTags {
+            get {
                 if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
-                    ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
-                    for (int i = 0; i < shaderTagIds.Length; ++i) {
-                        shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
-                    }
-                    return shaderTagIds;
+                    return m_ShaderTagLightModes;
                 } else {
-                    ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
-                    return shaderTagIds;
+                    return m_DefaultShaderTagLightModes;
                 }
             }
         }
@@ -154,6 +189,35 @@ namespace SoFunny.Rendering.Funnyland {
                 m_DefaultStencilState = value;
             }
         }
+        
+        public RenderObjects.RenderObjectsSettings occluderStencilData {
+            get {
+                m_OccluderStencilData.filterSettings.LayerMask = m_OccluderStencilLayerMask;
+                m_OccluderStencilData.stencilSettings.overrideStencilState = true;
+                m_OccluderStencilData.stencilSettings.stencilReference = 3;
+                m_OccluderStencilData.stencilSettings.passOperation = StencilOp.Replace;
+                return m_OccluderStencilData;
+            }
+        }
+
+        public RenderObjects.RenderObjectsSettings characterStencilData {
+            get {
+                m_CharacterStencilData.filterSettings.LayerMask = m_CharacterStencilLayerMask;
+                m_CharacterStencilData.stencilSettings.overrideStencilState = true;
+                m_CharacterStencilData.stencilSettings.stencilReference = 4;
+                m_CharacterStencilData.stencilSettings.passOperation = StencilOp.Replace;
+                return m_CharacterStencilData;
+            }
+        }
+
+        public HistogramChannel histogramChannel {
+            get => m_Histogram;
+            set {
+                SetDirty();
+                m_Histogram = value;
+            }
+        }
+        
         protected override ScriptableRenderer Create() {
             return new FunnylandMobileRenderer(this);
         }
