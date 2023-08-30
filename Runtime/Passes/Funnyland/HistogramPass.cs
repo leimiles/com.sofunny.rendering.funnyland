@@ -71,6 +71,8 @@ namespace SoFunny.Rendering.Funnyland
                 {
                     m_Source = renderingData.cameraData.renderer.cameraColorTargetHandle;
                 }
+                
+                // cmd.Blit(m_Source, test);
                 cmd.SetComputeVectorParam(m_ComputeShader, "_Params", parameters);
                 cmd.SetComputeTextureParam(m_ComputeShader, kernel, "_Source", m_Source);
                 cmd.SetComputeBufferParam(m_ComputeShader, kernel, "_HistogramBuffer", m_Data);
@@ -79,10 +81,10 @@ namespace SoFunny.Rendering.Funnyland
                     Mathf.CeilToInt(parameters.y / m_ThreadGroupSizeY),
                     1
                 );
-
                 m_Material.SetBuffer("_HistogramBuffer", m_Data);
-                //Blitter.BlitTexture(cmd, cameraTarget, Vector2.one, m_Material, 0);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
+                // Blitter.BlitTexture(cmd, m_Source, Vector4.one, m_Material, 0);
+                Blitter.BlitTexture(cmd, Vector4.one, m_Material, 0);
+                //cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
             }
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
