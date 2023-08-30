@@ -149,7 +149,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
 #if UNITY_EDITOR
-            m_HistogramPass = new HistogramPass(m_HistogramComputerShader, RenderPassEvent.AfterRendering, m_HistogramMaterial);
+            m_HistogramPass = new HistogramPass(m_HistogramComputerShader, RenderPassEvent.AfterRendering, m_HistogramMaterial, data.histogramChannel);
 #endif
             {
                 var postProcessParams = PostProcessParams.Create();
@@ -163,7 +163,6 @@ namespace SoFunny.Rendering.Funnyland {
             }
             m_VolumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
             m_PostProssType = data.postProssType;
-            m_Histogram = data.histogramChannel;
         }
 
         void ChangeAssetSettings() {
@@ -391,7 +390,7 @@ namespace SoFunny.Rendering.Funnyland {
                 if (!cameraTargetResolved) {
 #if UNITY_EDITOR
                     if(camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView){
-                        m_HistogramPass.Setup(sourceForFinalPass, m_Histogram);
+                        m_HistogramPass.Setup(sourceForFinalPass);
                         EnqueuePass(m_HistogramPass);
                     }
 #endif

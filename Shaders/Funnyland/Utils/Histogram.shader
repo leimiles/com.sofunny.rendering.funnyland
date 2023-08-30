@@ -13,6 +13,7 @@ Shader "Hidden/PostProcessing/Histogram"
         // #endif
     
         #define HISTOGRAM_BINS 256
+        #define RGBHISTOGRAM_BINS 256 * 3// Histogram.m_NumBins
 
         StructuredBuffer<uint> _HistogramBuffer;
         #define _Params float2(256, 512)
@@ -43,7 +44,18 @@ Shader "Hidden/PostProcessing/Histogram"
         float FindMaxHistogramValue()
         {
             uint maxValue = 0u;
+
+            #ifdef _HISTOGRAM_RGB
+            UNITY_UNROLL
+            for (uint i = 0; i < RGBHISTOGRAM_BINS; i++)
+            {
+                uint h = _HistogramBuffer[i];
+                maxValue = max(maxValue, h);
+            }
         
+            return float(maxValue);
+            #endif
+
             UNITY_UNROLL
             for (uint i = 0; i < HISTOGRAM_BINS; i++)
             {
@@ -104,6 +116,19 @@ Shader "Hidden/PostProcessing/Histogram"
             float remapI = i.texcoord.x * kBinsMinusOne;
             uint index = floor(remapI);
             float delta = frac(remapI);
+            
+            #ifdef _HISTOGRAM_RGB
+                float3 v1_RGB = float3(_HistogramBuffer[index], _HistogramBuffer[index + 256], _HistogramBuffer[index + 256 * 2]) * maxValue;
+                float3 v2_RGB = float3(_HistogramBuffer[min(index + 1, kBinsMinusOne)], _HistogramBuffer[min(index + 1, kBinsMinusOne) + 256], _HistogramBuffer[min(index + 1, kBinsMinusOne) + 256 * 2]) * maxValue;
+                float3 h_RGB = v1_RGB * (1.0 - delta) + v2_RGB * delta;
+                uint y_RGB = (uint)round(i.texcoord.y * _Params.y);
+                float3 color_RGB = (0.0).xxx;
+                float3 fill_RGB = step(y_RGB, h_RGB);
+                color_RGB = lerp(color_RGB, (1.0).xxx, fill_RGB);
+                float a = 1.0 - step(fill_RGB.x, 0.01) * step(fill_RGB.y, 0.01) * step(fill_RGB.z, 0.01);
+                return float4(color_RGB, a + 0.3);
+            #endif
+            
             float v1 = float(_HistogramBuffer[index]) * maxValue;
             float v2 = float(_HistogramBuffer[min(index + 1, kBinsMinusOne)]) * maxValue;
             float h = v1 * (1.0 - delta) + v2 * delta;
@@ -115,81 +140,6 @@ Shader "Hidden/PostProcessing/Histogram"
             return float4(color, fill + 0.3);
         }
 
-    
-    
-        // struct VaryingsHistogram
-        // {
-        //     float4 vertex : SV_POSITION;
-        //     float2 texcoord : TEXCOORD0;
-        //     float maxValue : TEXCOORD1;
-        // };
-        //
-        // struct AttributesDefault
-        // {
-        //     float3 vertex : POSITION;
-        // };
-        //
-        // StructuredBuffer<uint> _HistogramBuffer;
-        // #define _Params float2(256, 512)
-        // float FindMaxHistogramValue()
-        // {
-        //     uint maxValue = 0u;
-        //
-        //     UNITY_UNROLL
-        //     for (uint i = 0; i < HISTOGRAM_BINS; i++)
-        //     {
-        //         uint h = _HistogramBuffer[i];
-        //         maxValue = max(maxValue, h);
-        //     }
-        //
-        //     return float(maxValue);
-        // }
-        //
-        // VaryingsHistogram Vert(AttributesDefault v)
-        // {
-        //     VaryingsHistogram o;
-        //     o.vertex = float4(v.vertex.xy, 0.0, 1.0);
-        //     o.vertex = o.vertex;
-        //     o.vertex.xy = float2(o.vertex.x, o.vertex.y * _ProjectionParams.x);
-        //     o.texcoord = (v.vertex.xy + 1) * 0.5;
-        //
-        // #if UNITY_UV_STARTS_AT_TOP
-        //     o.vertex.y = -o.vertex.y;
-        //     o.texcoord = o.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
-        // #endif
-        //
-        // #if SHADER_API_GLES3 // No texture loopup in VS on GLES3/Android
-        //     o.maxValue = 0;
-        // #else
-        //     o.maxValue = _Params.y / FindMaxHistogramValue();
-        // #endif
-        //
-        //     return o;
-        // }
-        //
-        // float4 Frag(VaryingsHistogram i) : SV_Target
-        // {
-        // #if SHADER_API_GLES3
-        //     float maxValue = _Params.y / FindMaxHistogramValue();
-        // #else
-        //     float maxValue = i.maxValue;
-        // #endif
-        //
-        //     const float kBinsMinusOne = HISTOGRAM_BINS - 1.0;
-        //     float remapI = i.texcoord.x * kBinsMinusOne;
-        //     uint index = floor(remapI);
-        //     float delta = frac(remapI);
-        //     float v1 = float(_HistogramBuffer[index]) * maxValue;
-        //     float v2 = float(_HistogramBuffer[min(index + 1, kBinsMinusOne)]) * maxValue;
-        //     float h = v1 * (1.0 - delta) + v2 * delta;
-        //     uint y = (uint)round(i.texcoord.y * _Params.y);
-        //
-        //     float3 color = (0.0).xxx;
-        //     float fill = step(y, h);
-        //     color = lerp(color, (1.0).xxx, fill);
-        //     return float4(color, 1);
-        // }
-
     ENDHLSL
 
     SubShader
@@ -199,9 +149,10 @@ Shader "Hidden/PostProcessing/Histogram"
         Pass
         {
             HLSLPROGRAM
-    
                 #pragma vertex Vert
                 #pragma fragment Frag
+                #pragma enable_d3d11_debug_symbols  
+                #pragma multi_compile _ _HISTOGRAM_RGB
 
             ENDHLSL
         }
