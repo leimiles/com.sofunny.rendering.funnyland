@@ -93,9 +93,6 @@ namespace FRP.Rendering {
 
             int outlineID = Shader.PropertyToID("_SelectOutlineTex");
             bool isCreatTex = true;
-            RenderTextureDescriptor descriptor;
-            descriptor = renderingData.cameraData.renderer.cameraColorTargetHandle.rt.descriptor;
-            descriptor.depthBufferBits = 0;
             foreach (var effectsTrigger in EffectsManager.EffectsTriggers) {
                 var (isActive, width, color) = effectsTrigger.GetOutlineParam();
 
