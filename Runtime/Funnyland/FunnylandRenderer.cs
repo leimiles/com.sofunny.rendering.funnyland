@@ -49,7 +49,6 @@ namespace SoFunny.Rendering.Funnyland {
         DrawObjectsPass m_RenderTransparentForwardPass;
         
         RenderObjectsPass m_OccluderStencil;
-        RenderObjectsPass m_CharacterStencil;
         EffectsPass m_EffectsPass;
         
         DrawSkyboxPass m_DrawSkyboxPass;
@@ -135,8 +134,6 @@ namespace SoFunny.Rendering.Funnyland {
             m_OccluderStencil = new RenderObjectsPass("occluderStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.occluderStencilData.filterSettings.RenderQueueType, data.occluderStencilData.filterSettings.LayerMask, data.occluderStencilData.cameraSettings);
             m_OccluderStencil.SetStencilState(data.occluderStencilData.stencilSettings.stencilReference, data.occluderStencilData.stencilSettings.stencilCompareFunction, data.occluderStencilData.stencilSettings.passOperation, data.occluderStencilData.stencilSettings.failOperation, data.occluderStencilData.stencilSettings.zFailOperation);
             
-            m_CharacterStencil = new RenderObjectsPass("characterStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.characterStencilData.filterSettings.RenderQueueType, data.characterStencilData.filterSettings.LayerMask, data.characterStencilData.cameraSettings);
-            m_CharacterStencil.SetStencilState(data.characterStencilData.stencilSettings.stencilReference, data.characterStencilData.stencilSettings.stencilCompareFunction, data.characterStencilData.stencilSettings.passOperation, data.characterStencilData.stencilSettings.failOperation, data.characterStencilData.stencilSettings.zFailOperation);
             m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial);
                 
             m_CopyDepthPass = new CopyDepthPass(
@@ -321,7 +318,6 @@ namespace SoFunny.Rendering.Funnyland {
             
             #region outline
             EnqueuePass(m_OccluderStencil);
-            EnqueuePass(m_CharacterStencil);
             EnqueuePass(m_EffectsPass);
             #endregion
 

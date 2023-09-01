@@ -186,39 +186,44 @@ Shader "Hidden/Funny Render Pipeline/Effects"
         Pass
         {
             Name "ScreenOutline"
-            
-            Cull Back
+
+            Cull Off
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
 
             #pragma vertex vert
             #pragma fragment frag
-
-
-           #if SHADER_API_GLES
+            
+            #if SHADER_API_GLES
             struct Attributes
             {
                 float4 positionOS       : POSITION;
                 float2 uv               : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
             #else
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
             #endif
-            
+
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 texcoord[9]   : TEXCOORD0;
+
+                UNITY_VERTEX_OUTPUT_STEREO
             };
-        
+
             Varyings vert(Attributes input)
             {
                  Varyings output;
-            
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                
             #if SHADER_API_GLES
                 float4 pos = input.positionOS;
                 float2 uv  = input.uv;
@@ -226,6 +231,7 @@ Shader "Hidden/Funny Render Pipeline/Effects"
                 float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
                 float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
             #endif
+
                 output.positionCS = pos;
                 output.texcoord[0] = uv + _SelectOutlineTex_TexelSize.xy * float2(-1, -1);
                 output.texcoord[1] = uv + _SelectOutlineTex_TexelSize.xy * float2(0, -1);
@@ -236,15 +242,8 @@ Shader "Hidden/Funny Render Pipeline/Effects"
                 output.texcoord[6] = uv + _SelectOutlineTex_TexelSize.xy * float2(-1, 1);
                 output.texcoord[7] = uv + _SelectOutlineTex_TexelSize.xy * float2(0, 1);
                 output.texcoord[8] = uv + _SelectOutlineTex_TexelSize.xy * float2(1, 1);
-
                 return output;
             }
-
-            half CheckSame(half center, half sample) {
-			    float diffDepth = abs(center - sample);
-			    int isSameDepth = diffDepth < 0.1;
-			    return isSameDepth ? 0.0 : 1.0;
-		    }
 
             half Sobel(Varyings o)
             {
@@ -272,6 +271,7 @@ Shader "Hidden/Funny Render Pipeline/Effects"
             
             float4 frag(Varyings i) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 half diff = saturate(1.0 - Sobel(i));
                 half3 color = _OutlineColor * diff;
                 return half4(color, diff);

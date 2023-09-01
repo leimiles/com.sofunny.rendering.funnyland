@@ -27,8 +27,8 @@ namespace FRP.Rendering {
 
             using (new ProfilingScope(cmd, m_ProfilingSampler)) {
                 DrawRenderersByAttacked(ref cmd, 0);
-                DrawRenderersBySelectOutline(ref cmd, 2);
                 DrawRenderersByOccluder(ref cmd, 1);
+                DrawRenderersBySelectOutline(ref cmd, ref renderingData, 2);
             }
         }
 
@@ -50,7 +50,6 @@ namespace FRP.Rendering {
                         for (int i = 0; i < sharedMaterials.Length; i++) {
                             if (sharedMaterials == null)
                                 continue;
-
                             cmd.DrawRenderer(renderer, m_Material, i, passIndex);
                         }
                     }
@@ -87,10 +86,16 @@ namespace FRP.Rendering {
             }
         }
 
-        void DrawRenderersBySelectOutline(ref CommandBuffer cmd, int passIndex = 2) {
+        void DrawRenderersBySelectOutline(ref CommandBuffer cmd, ref RenderingData renderingData, int passIndex = 2) {
             if (EffectsManager.EffectsTriggers == null) {
                 return ;
             }
+
+            int outlineID = Shader.PropertyToID("_SelectOutlineTex");
+            bool isCreatTex = true;
+            RenderTextureDescriptor descriptor;
+            descriptor = renderingData.cameraData.renderer.cameraColorTargetHandle.rt.descriptor;
+            descriptor.depthBufferBits = 0;
             foreach (var effectsTrigger in EffectsManager.EffectsTriggers) {
                 var (isActive, width, color) = effectsTrigger.GetOutlineParam();
 
@@ -98,6 +103,13 @@ namespace FRP.Rendering {
                     foreach (var renderer in effectsTrigger.GetRenderers()) {
                         if (renderer == null) {
                             continue;
+                        }
+
+                        if (isCreatTex) {
+                            cmd.GetTemporaryRT(outlineID, renderingData.cameraData.renderer.cameraColorTargetHandle.rt.descriptor);
+                            cmd.SetRenderTarget(outlineID, renderingData.cameraData.renderer.cameraDepthTargetHandle);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            isCreatTex = false;
                         }
 
                         renderer.GetPropertyBlock(materialPropertyBlock);
@@ -113,6 +125,13 @@ namespace FRP.Rendering {
                         }
                     }
                 }
+            }
+
+            if (!isCreatTex) {
+                //cmd.SetGlobalTexture("_SelectOutlineTex", outlineID);
+                cmd.SetRenderTarget(renderingData.cameraData.renderer.cameraColorTargetHandle);
+                Blitter.BlitTexture(cmd, Vector4.one, m_Material, 3);
+                cmd.ReleaseTemporaryRT(outlineID);
             }
         }
     }

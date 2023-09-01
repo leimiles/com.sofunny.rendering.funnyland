@@ -101,8 +101,7 @@ namespace SoFunny.Rendering.Funnyland {
         [SerializeField] LayerMask m_OccluderStencilLayerMask = 0;
         [SerializeField] LayerMask m_CharacterStencilLayerMask = 0;
         private RenderObjects.RenderObjectsSettings m_OccluderStencilData = new RenderObjects.RenderObjectsSettings();
-        private RenderObjects.RenderObjectsSettings m_CharacterStencilData = new RenderObjects.RenderObjectsSettings();
-        
+
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
         
         [SerializeField] string[] m_ShaderTagLightModes;
@@ -197,16 +196,6 @@ namespace SoFunny.Rendering.Funnyland {
                 m_OccluderStencilData.stencilSettings.stencilReference = 3;
                 m_OccluderStencilData.stencilSettings.passOperation = StencilOp.Replace;
                 return m_OccluderStencilData;
-            }
-        }
-
-        public RenderObjects.RenderObjectsSettings characterStencilData {
-            get {
-                m_CharacterStencilData.filterSettings.LayerMask = m_CharacterStencilLayerMask;
-                m_CharacterStencilData.stencilSettings.overrideStencilState = true;
-                m_CharacterStencilData.stencilSettings.stencilReference = 4;
-                m_CharacterStencilData.stencilSettings.passOperation = StencilOp.Replace;
-                return m_CharacterStencilData;
             }
         }
 

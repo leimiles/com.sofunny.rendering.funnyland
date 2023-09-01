@@ -15,7 +15,6 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("镜头效果: ", "只能调色，别的不开");
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
             public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体和开启遮挡描边");
-            public static readonly GUIContent CharacterStencilLayerMask = EditorGUIUtility.TrTextContent("角色LayerMask: ", "该layer层可以开启遮挡描边");
             public static readonly GUIContent Histogram = EditorGUIUtility.TrTextContent("色彩直方图: ", "开启色彩直方图debug");
         }
         SerializedProperty m_LightModes;
@@ -24,7 +23,6 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_PostProcessType;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_OccluderStencilLayerMask;
-        SerializedProperty m_CharacterStencilLayerMask;
         SerializedProperty m_Histogram;
         
         bool isDebug = true;
@@ -37,7 +35,6 @@ namespace SoFunny.Rendering.Funnyland {
             m_PostProcessType = serializedObject.FindProperty("postProssType");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_OccluderStencilLayerMask = serializedObject.FindProperty("m_OccluderStencilLayerMask");
-            m_CharacterStencilLayerMask = serializedObject.FindProperty("m_CharacterStencilLayerMask");
             m_Histogram = serializedObject.FindProperty("m_Histogram");
         }
         public override void OnInspectorGUI() {
@@ -56,8 +53,7 @@ namespace SoFunny.Rendering.Funnyland {
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             }
             EditorGUILayout.PropertyField(m_OccluderStencilLayerMask, Styles.OccluderStencilLayerMask);
-            EditorGUILayout.PropertyField(m_CharacterStencilLayerMask, Styles.CharacterStencilLayerMask);
-            
+
             isDebug = EditorGUILayout.Foldout(isDebug, "Debug");
             if (isDebug) {
                 EditorGUILayout.PropertyField(m_Histogram, Styles.Histogram);
