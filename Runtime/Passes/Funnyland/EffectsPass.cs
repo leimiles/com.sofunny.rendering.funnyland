@@ -12,14 +12,14 @@ namespace FRP.Rendering {
         Material m_Material;
         MaterialPropertyBlock materialPropertyBlock;
         ProfilingSampler m_ProfilingSampler;
-
+        List<Material> m_sharedMaterials;
         public EffectsPass(RenderPassEvent renderPassEvent, Material material) {
             m_Material = material;
             this.renderPassEvent = renderPassEvent;
             materialPropertyBlock = new MaterialPropertyBlock();
             EffectsManager.Init();
             m_ProfilingSampler = new ProfilingSampler("EffectsPass");
-            
+            m_sharedMaterials = new List<Material>();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
@@ -30,6 +30,8 @@ namespace FRP.Rendering {
                 DrawRenderersByOccluder(ref cmd, 1);
                 DrawRenderersBySelectOutline(ref cmd, ref renderingData, 2);
             }
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         void DrawRenderersByAttacked(ref CommandBuffer cmd, int passIndex = 0) {
@@ -46,9 +48,11 @@ namespace FRP.Rendering {
                         materialPropertyBlock.SetColor(Shader.PropertyToID("_Color"), effectsTrigger.attackedColor);
                         materialPropertyBlock.SetFloat(Shader.PropertyToID("_AttackedColorIntensity"), effectsTrigger.attackedColorIntensity);
                         renderer.SetPropertyBlock(materialPropertyBlock);
-                        Material[] sharedMaterials = renderer.sharedMaterials;
-                        for (int i = 0; i < sharedMaterials.Length; i++) {
-                            if (sharedMaterials == null)
+                        
+                        m_sharedMaterials.Clear();
+                        renderer.GetSharedMaterials(m_sharedMaterials);
+                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                            if (m_sharedMaterials == null)
                                 continue;
                             cmd.DrawRenderer(renderer, m_Material, i, passIndex);
                         }
@@ -74,9 +78,11 @@ namespace FRP.Rendering {
                         materialPropertyBlock.SetFloat(Shader.PropertyToID("_OccludeeColorIntensity"), intensity);
                         materialPropertyBlock.SetColor(Shader.PropertyToID("_OccludeeColor"), color);
                         renderer.SetPropertyBlock(materialPropertyBlock);
-                        Material[] sharedMaterials = renderer.sharedMaterials;
-                        for (int i = 0; i < sharedMaterials.Length; i++) {
-                            if (sharedMaterials == null)
+                        
+                        m_sharedMaterials.Clear();
+                        renderer.GetSharedMaterials(m_sharedMaterials);
+                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                            if (m_sharedMaterials == null)
                                 continue;
 
                             cmd.DrawRenderer(renderer, m_Material, i, passIndex);
@@ -113,9 +119,10 @@ namespace FRP.Rendering {
                         materialPropertyBlock.SetFloat(Shader.PropertyToID("_OutlineWidth"), width);
                         materialPropertyBlock.SetColor(Shader.PropertyToID("_OutlineColor"), color);
                         renderer.SetPropertyBlock(materialPropertyBlock);
-                        Material[] sharedMaterials = renderer.sharedMaterials;
-                        for (int i = 0; i < sharedMaterials.Length; i++) {
-                            if (sharedMaterials == null)
+                        m_sharedMaterials.Clear();
+                        renderer.GetSharedMaterials(m_sharedMaterials);
+                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                            if (m_sharedMaterials == null)
                                 continue;
 
                             cmd.DrawRenderer(renderer, m_Material, i, passIndex);

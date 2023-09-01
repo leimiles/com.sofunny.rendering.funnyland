@@ -30,6 +30,22 @@ namespace FRP.Rendering {
         private readonly List<OutlineState> outlineStates = new((byte)OutlineType.Flag);
         private readonly List<OccludeeState> occludeeStates = new((byte)OccludeeType.Flag);
 
+        
+        // Test
+        // private void Update() {
+        //     OutlineState outlineState;
+        //     outlineState.type = OutlineType.Teammate;
+        //     outlineState.isActive = true;
+        //     outlineState.priority = 0;
+        //     SetOutlineState(outlineState);
+        //
+        //     OccludeeState occludeeState;
+        //     occludeeState.priority = 0;
+        //     occludeeState.type = OccludeeType.Teammate;
+        //     occludeeState.isActive = true;
+        //     SetOccludeeState(occludeeState);
+        // }
+
         public void SetOutlineState(OutlineState input) {
             var exist = false;
             var dirty = false;
