@@ -467,6 +467,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] bool m_MainLightShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] Color m_MainLightShadowColor = Color.black;
 
         // Additional lights settings
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
@@ -1189,6 +1190,14 @@ namespace UnityEngine.Rendering.Universal
             internal set { m_MainLightShadowmapResolution = (ShadowResolution)value; }
         }
 
+        /// <summary>
+        /// Returns the main light shadow color <c>UniversalRenderPipelineAsset</c>.
+        /// </summary>
+        public Color mainLightShadowColor
+        {
+            get { return m_MainLightShadowColor; }
+            internal set { m_MainLightShadowColor = value; }
+        }
         /// <summary>
         /// Specifies the <c>LightRenderingMode</c> for the additional lights used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>

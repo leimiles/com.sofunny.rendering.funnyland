@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
+        public SerializedProperty mainLightShadowColorProp { get; }
 
         public SerializedProperty shEvalModeProp { get; }
 
@@ -105,6 +106,7 @@ namespace UnityEditor.Rendering.Universal
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             mainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
+            mainLightShadowColorProp = serializedObject.FindProperty("m_MainLightShadowColor");
 
             additionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
             additionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");

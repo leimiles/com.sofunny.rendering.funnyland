@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             public static int _WorldToShadow;
             public static int _ShadowParams;
+            public static int _ShadowColor;
             public static int _CascadeShadowSplitSpheres0;
             public static int _CascadeShadowSplitSpheres1;
             public static int _CascadeShadowSplitSpheres2;
@@ -60,6 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             MainLightShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_MainLightWorldToShadow");
             MainLightShadowConstantBuffer._ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
+            MainLightShadowConstantBuffer._ShadowColor = Shader.PropertyToID("_MainLightShadowColor");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 = Shader.PropertyToID("_CascadeShadowSplitSpheres0");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 = Shader.PropertyToID("_CascadeShadowSplitSpheres1");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
@@ -272,7 +274,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             float softShadowsProp = ShadowUtils.SoftShadowQualityToShaderProperty(light, softShadows);
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
-
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowColor, 
+                new Vector4(shadowData.mainLightShadowColor.r, shadowData.mainLightShadowColor.g, shadowData.mainLightShadowColor.b, shadowData.mainLightShadowColor.a));
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
