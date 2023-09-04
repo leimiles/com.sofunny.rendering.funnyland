@@ -1373,6 +1373,7 @@ namespace UnityEngine.Rendering.Universal
             shadowData.bias = m_ShadowBiasData;
             shadowData.resolution = m_ShadowResolutionData;
             shadowData.mainLightShadowsEnabled = settings.supportsMainLightShadows && settings.mainLightRenderingMode == LightRenderingMode.PerPixel;
+            shadowData.mainLightShadowColor = settings.mainLightShadowColor;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && shadowData.mainLightShadowsEnabled && mainLightCastShadows;
 
             // We no longer use screen space shadows in URP.

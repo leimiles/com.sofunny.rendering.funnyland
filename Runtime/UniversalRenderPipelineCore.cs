@@ -693,7 +693,12 @@ namespace UnityEngine.Rendering.Universal
         /// The number of shadow cascades.
         /// </summary>
         public int mainLightShadowCascadesCount;
-
+        
+        /// <summary>
+        /// Main shadow color.
+        /// </summary>
+        public Color mainLightShadowColor;
+        
         /// <summary>
         /// The split between cascades.
         /// </summary>
