@@ -1,4 +1,4 @@
-Shader "Hidden/PostProcessing/Histogram"
+Shader "Hidden/SoFunny/Funnyland/PostProcessing/Histogram"
 {
     HLSLINCLUDE
 

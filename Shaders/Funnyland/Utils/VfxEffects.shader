@@ -1,4 +1,4 @@
-Shader "Hidden/Funny Render Pipeline/Effects"
+Shader "Hidden/SoFunny/Funnyland/Funny Render Pipeline/Effects"
 {
     Properties
     {
