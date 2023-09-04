@@ -32,6 +32,8 @@ namespace FRP.Rendering {
 
         
         // Test
+        // 仅仅用来调试效果调用, 在PCRetime时可以用Update, 但是当打包之后需要预热管线或者将Update函数改为Render后的函数调用
+        // 原因是我们在new EffectsPass时进行EffectsManager.Init()初始化状态
         // private void Update() {
         //     OutlineState outlineState;
         //     outlineState.type = OutlineType.Teammate;
