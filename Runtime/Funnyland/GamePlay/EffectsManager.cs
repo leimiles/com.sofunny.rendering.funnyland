@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FRP.Rendering {
+namespace SoFunny.Rendering.Funnyland {
     public class EffectsManager {
         static List<EffectsTrigger> effectsTriggers;
 

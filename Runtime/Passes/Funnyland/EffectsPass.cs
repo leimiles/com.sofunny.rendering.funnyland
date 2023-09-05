@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace FRP.Rendering {
+namespace SoFunny.Rendering.Funnyland {
     /// <summary>
     /// 受击特效
     /// </summary>

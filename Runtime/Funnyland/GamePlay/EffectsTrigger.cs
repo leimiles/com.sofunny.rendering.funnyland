@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FRP.Rendering {
+namespace SoFunny.Rendering.Funnyland {
     [DisallowMultipleComponent]
     public class EffectsTrigger : MonoBehaviour {
         public enum OutlineType : byte {

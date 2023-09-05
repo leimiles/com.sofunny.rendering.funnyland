@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace FRP.Rendering {
+namespace SoFunny.Rendering.Funnyland {
     public class DitherEffectTrigger : MonoBehaviour {
         [Range(0, 10)] [SerializeField] private float min = 0.5f;
         [Range(0, 15)] [SerializeField] private float max = 5f;
