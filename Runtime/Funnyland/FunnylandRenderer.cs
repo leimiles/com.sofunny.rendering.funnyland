@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 using UnityEngine.Rendering.Universal;
@@ -45,6 +46,10 @@ namespace SoFunny.Rendering.Funnyland {
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
+        
+        RenderObjectsPass m_OccluderStencil;
+        EffectsPass m_EffectsPass;
+        
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         FinalBlitPass m_FinalBlitPass;
@@ -55,10 +60,18 @@ namespace SoFunny.Rendering.Funnyland {
         ForwardLights m_ForwardLights;
         LightCookieManager m_LightCookieManager;
 
+#if UNITY_EDITOR
+        HistogramPass m_HistogramPass;
+#endif
+        
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
-
-
+        Material m_EffectsMaterial = null;
+        
+#if UNITY_EDITOR
+        Material m_HistogramMaterial = null;
+        ComputeShader m_HistogramComputerShader = null;
+#endif
         FunnyPostProcessPasses m_PostProcessPasses;
         internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
@@ -67,6 +80,7 @@ namespace SoFunny.Rendering.Funnyland {
 
         PostProssType m_PostProssType;
         PostVolumeData m_VolumeData;
+        HistogramChannel m_Histogram;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
             ProjectSettingMobile();
@@ -75,7 +89,11 @@ namespace SoFunny.Rendering.Funnyland {
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
-
+            m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.vfxEffectsPS);
+#if UNITY_EDITOR
+            m_HistogramMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.histogramPS);
+            m_HistogramComputerShader = data.shaderResources.histogramComputerShader;
+#endif
             ChangeAssetSettings();
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
@@ -110,6 +128,13 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            
+            // 受击特效模板遮罩
+            m_OccluderStencil = new RenderObjectsPass("occluderStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.occluderStencilData.filterSettings.RenderQueueType, data.occluderStencilData.filterSettings.LayerMask, data.occluderStencilData.cameraSettings);
+            m_OccluderStencil.SetStencilState(data.occluderStencilData.stencilSettings.stencilReference, data.occluderStencilData.stencilSettings.stencilCompareFunction, data.occluderStencilData.stencilSettings.passOperation, data.occluderStencilData.stencilSettings.failOperation, data.occluderStencilData.stencilSettings.zFailOperation);
+            
+            m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial);
+                
             m_CopyDepthPass = new CopyDepthPass(
                 RenderPassEvent.AfterRenderingSkybox,
                 m_CopyDepthMaterial,
@@ -119,6 +144,9 @@ namespace SoFunny.Rendering.Funnyland {
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
+#if UNITY_EDITOR
+            m_HistogramPass = new HistogramPass(m_HistogramComputerShader, RenderPassEvent.AfterRendering, m_HistogramMaterial, data.histogramChannel);
+#endif
             {
                 var postProcessParams = PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
@@ -286,6 +314,11 @@ namespace SoFunny.Rendering.Funnyland {
             renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
             EnqueuePass(renderOpaqueForwardPass);
             #endregion
+            
+            #region outline
+            EnqueuePass(m_OccluderStencil);
+            EnqueuePass(m_EffectsPass);
+            #endregion
 
             #region  skybox pass
             if (camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay) {
@@ -312,8 +345,11 @@ namespace SoFunny.Rendering.Funnyland {
 
             #region post processing
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            
+            // 开启直方图Debug需要在后处理之后进行FinalBlit
+            bool hasPassesAfterPostProcessing = m_Histogram != HistogramChannel.None;
             bool applyFinalPostProcessing = false;
-            bool resolvePostProcessingToCameraTarget = !applyFinalPostProcessing;
+            bool resolvePostProcessingToCameraTarget = !applyFinalPostProcessing && !hasPassesAfterPostProcessing;
 
             bool needsColorEncoding = true;
             if (applyPostProcessing) {
@@ -342,19 +378,28 @@ namespace SoFunny.Rendering.Funnyland {
                     // final PP always blit to camera target
                     applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                    applyPostProcessing;
+                    applyPostProcessing && !hasPassesAfterPostProcessing;
+                
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved) {
+#if UNITY_EDITOR
+                    if(camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView){
+                        m_HistogramPass.Setup(sourceForFinalPass);
+                        EnqueuePass(m_HistogramPass);
+                    }
+#endif
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
+                
             }
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing) {
                 postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_VolumeData, m_ActiveCameraDepthAttachment, colorGradingLut, null, false, false);
                 EnqueuePass(postProcessPass);
             }
+
             #endregion
 
         }
@@ -406,6 +451,11 @@ namespace SoFunny.Rendering.Funnyland {
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
+            CoreUtils.Destroy(m_EffectsMaterial);
+#if UNITY_EDITOR
+            m_HistogramPass?.Dispose();
+            CoreUtils.Destroy(m_HistogramMaterial);
+#endif
         }
 
         /// <inheritdoc />
