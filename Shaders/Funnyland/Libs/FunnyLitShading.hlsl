@@ -104,6 +104,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData.normalizedScreenSpaceUV, surfaceData.occlusion);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+    mainLight.shadowAttenuation = lerp(1, mainLight.shadowAttenuation, _MainLightShadowColor.a);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, aoFactor);
 
