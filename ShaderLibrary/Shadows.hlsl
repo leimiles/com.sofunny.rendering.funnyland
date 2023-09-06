@@ -72,7 +72,7 @@ float4      _MainLightShadowOffset0; // xy: offset0, zw: offset1
 float4      _MainLightShadowOffset1; // xy: offset2, zw: offset3
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
-float4      _MainLightShadowColor;
+float4      _MainLightShadowColor; // main light shadow color
 
 float4      _AdditionalShadowOffset0; // xy: offset0, zw: offset1
 float4      _AdditionalShadowOffset1; // xy: offset2, zw: offset3

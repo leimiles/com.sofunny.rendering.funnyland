@@ -153,6 +153,8 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     lightingData.vertexLightingColor += inputData.vertexLighting * surfaceData.albedo;
     #endif
 
-    return CalculateFinalColor(lightingData, surfaceData.alpha);
+    half4 finalColor = CalculateFinalColor(lightingData, surfaceData.alpha);
+    finalColor.rgb = lerp(finalColor.rgb * _MainLightShadowColor.rgb, finalColor.rgb, mainLight.shadowAttenuation * mainLight.distanceAttenuation);
+    return finalColor;
 }
 #endif
