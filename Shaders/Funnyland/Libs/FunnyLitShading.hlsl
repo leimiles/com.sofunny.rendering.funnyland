@@ -104,6 +104,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData.normalizedScreenSpaceUV, surfaceData.occlusion);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
+    mainLight.shadowAttenuation = lerp(1, mainLight.shadowAttenuation, _MainLightShadowColor.a);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, aoFactor);
 
@@ -153,6 +154,8 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     lightingData.vertexLightingColor += inputData.vertexLighting * surfaceData.albedo;
     #endif
 
-    return CalculateFinalColor(lightingData, surfaceData.alpha);
+    half4 finalColor = CalculateFinalColor(lightingData, surfaceData.alpha);
+    finalColor.rgb = lerp(finalColor.rgb * _MainLightShadowColor.rgb, finalColor.rgb, mainLight.shadowAttenuation * mainLight.distanceAttenuation);
+    return finalColor;
 }
 #endif

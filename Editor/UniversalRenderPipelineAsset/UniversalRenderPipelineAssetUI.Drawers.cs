@@ -312,7 +312,9 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawShadows(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
+            serialized.mainLightShadowColorProp.colorValue = EditorGUILayout.ColorField(Styles.shadowColorText, serialized.mainLightShadowColorProp.colorValue);
             serialized.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
+
             EditorUtils.Unit unit = EditorUtils.Unit.Metric;
             if (serialized.shadowCascadeCountProp.intValue != 0)
             {
