@@ -16,6 +16,7 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
             public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体和开启遮挡描边");
             public static readonly GUIContent Histogram = EditorGUIUtility.TrTextContent("色彩直方图: ", "开启色彩直方图debug");
+            public static readonly GUIContent UIBgBlur = EditorGUIUtility.TrTextContent("UI背景模糊级别: ", "UI 背景模糊的程度");
         }
         SerializedProperty m_LightModes;
         SerializedProperty m_FrameLimit;
@@ -24,6 +25,7 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_PostProcessData;
         SerializedProperty m_OccluderStencilLayerMask;
         SerializedProperty m_Histogram;
+        SerializedProperty m_UIBgBlur;
         
         bool isDebug = true;
 
@@ -36,6 +38,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_OccluderStencilLayerMask = serializedObject.FindProperty("m_OccluderStencilLayerMask");
             m_Histogram = serializedObject.FindProperty("m_Histogram");
+            m_UIBgBlur = serializedObject.FindProperty("m_UIBgBlurLevel");
         }
         public override void OnInspectorGUI() {
             serializedObject.Update();
@@ -53,6 +56,7 @@ namespace SoFunny.Rendering.Funnyland {
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             }
             EditorGUILayout.PropertyField(m_OccluderStencilLayerMask, Styles.OccluderStencilLayerMask);
+            EditorGUILayout.PropertyField(m_UIBgBlur, Styles.UIBgBlur);
 
             isDebug = EditorGUILayout.Foldout(isDebug, "Debug");
             if (isDebug) {

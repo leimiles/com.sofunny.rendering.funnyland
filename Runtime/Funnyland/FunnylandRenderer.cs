@@ -52,6 +52,7 @@ namespace SoFunny.Rendering.Funnyland {
         
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
+        FunnyUIBackgroundBlurPass m_FunnyUIBackgroundBlurPass;
         FinalBlitPass m_FinalBlitPass;
         bool m_DepthPrimingRecommended;
         CopyDepthMode m_CopyDepthMode;
@@ -72,6 +73,9 @@ namespace SoFunny.Rendering.Funnyland {
         Material m_HistogramMaterial = null;
         ComputeShader m_HistogramComputerShader = null;
 #endif
+        
+        Material m_UIBackgroundBlurMaterial = null;
+
         FunnyPostProcessPasses m_PostProcessPasses;
         internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
@@ -90,10 +94,13 @@ namespace SoFunny.Rendering.Funnyland {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
             m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.vfxEffectsPS);
+            
 #if UNITY_EDITOR
             m_HistogramMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.histogramPS);
             m_HistogramComputerShader = data.shaderResources.histogramComputerShader;
 #endif
+            m_UIBackgroundBlurMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.uiBackgroundBlurPS);
+
             ChangeAssetSettings();
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
@@ -141,6 +148,7 @@ namespace SoFunny.Rendering.Funnyland {
                 shouldClear: true,
                 copyResolvedDepth: false);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_FunnyUIBackgroundBlurPass = new FunnyUIBackgroundBlurPass(RenderPassEvent.BeforeRenderingPostProcessing, data.uiBgBlurLevel);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
@@ -342,6 +350,15 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
             EnqueuePass(m_RenderTransparentForwardPass);
             #endregion
+            
+            #region UIBgBlur
+
+            bool isUseUIBgBlur = (cameraData.camera.cameraType & CameraType.Game) != 0;
+            if (isUseUIBgBlur){
+                m_FunnyUIBackgroundBlurPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_UIBackgroundBlurMaterial);
+                EnqueuePass(m_FunnyUIBackgroundBlurPass);
+            }
+            #endregion
 
             #region post processing
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
@@ -456,6 +473,8 @@ namespace SoFunny.Rendering.Funnyland {
             m_HistogramPass?.Dispose();
             CoreUtils.Destroy(m_HistogramMaterial);
 #endif
+            
+            CoreUtils.Destroy(m_UIBackgroundBlurMaterial);
         }
 
         /// <inheritdoc />

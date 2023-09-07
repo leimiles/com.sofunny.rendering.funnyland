@@ -84,6 +84,9 @@ namespace SoFunny.Rendering.Funnyland {
             
             [Reload("Shaders/Funnyland/Utils/Histogram.compute"), SerializeField]
             internal ComputeShader histogramComputerShader;
+            
+            [Reload("Shaders/Funnyland/UIBackgroundBlur.shader"), SerializeField]
+            internal Shader uiBackgroundBlurPS;
         }
         public ShaderResources shaderResources = null;
 
@@ -103,6 +106,7 @@ namespace SoFunny.Rendering.Funnyland {
         private RenderObjects.RenderObjectsSettings m_OccluderStencilData = new RenderObjects.RenderObjectsSettings();
 
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
+        [SerializeField] private UIBgBlurLevel m_UIBgBlurLevel = UIBgBlurLevel.Low;
         
         [SerializeField] string[] m_ShaderTagLightModes;
         string[] m_DefaultShaderTagLightModes = new []{"FunnyLandMobileForward"};
@@ -204,6 +208,15 @@ namespace SoFunny.Rendering.Funnyland {
             set {
                 SetDirty();
                 m_Histogram = value;
+            }
+        }
+        
+        public UIBgBlurLevel uiBgBlurLevel
+        {
+            get => m_UIBgBlurLevel;
+            set {
+                SetDirty();
+                m_UIBgBlurLevel = value;
             }
         }
         
