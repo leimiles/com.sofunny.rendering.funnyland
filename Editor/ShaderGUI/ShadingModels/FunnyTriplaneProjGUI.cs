@@ -3,7 +3,7 @@ using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace SoFunny.Rendering.Funnyland.ShaderGUI
+namespace SoFunny.Rendering.Funnyland
 {
     /// <summary>
     /// Editor script for the Lit material inspector.

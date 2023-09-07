@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace SoFunny.Rendering.Funnyland.ShaderGUI
+namespace SoFunny.Rendering.Funnyland
 {
     internal class FunnyTriplaneProjShader : BaseShaderGUI
     {
