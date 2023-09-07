@@ -85,8 +85,17 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Funnyland/Utils/Histogram.compute"), SerializeField]
             internal ComputeShader histogramComputerShader;
             
-            [Reload("Shaders/Funnyland/UIBackgroundBlur.shader"), SerializeField]
+            [Reload("Shaders/Funnyland/Utils/UIBackgroundBlur.shader"), SerializeField]
             internal Shader uiBackgroundBlurPS;
+
+            public bool CheckHasNull() {
+                return !copyDepthPS 
+                       || !copyDepthPS 
+                       || !vfxEffectsPS 
+                       || !histogramPS 
+                       || !histogramComputerShader 
+                       || !uiBackgroundBlurPS;
+            }
         }
         public ShaderResources shaderResources = null;
 

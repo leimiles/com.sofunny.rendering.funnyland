@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace SoFunny.Rendering.Funnyland {
@@ -28,9 +29,11 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_UIBgBlur;
         
         bool isDebug = true;
+        private FunnylandMobileRendererData _funnylandMobileRendererData;
 
         //List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
         private void OnEnable() {
+            _funnylandMobileRendererData = target as FunnylandMobileRendererData;
             m_LightModes = serializedObject.FindProperty("m_ShaderTagLightModes");
             m_FrameLimit = serializedObject.FindProperty("m_FrameLimit");
             m_SharedProfile = serializedObject.FindProperty("m_SharedProfile");
@@ -43,7 +46,6 @@ namespace SoFunny.Rendering.Funnyland {
         public override void OnInspectorGUI() {
             serializedObject.Update();
             EditorGUILayout.Space();
-            
 
             EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
             EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
@@ -64,6 +66,18 @@ namespace SoFunny.Rendering.Funnyland {
             }
             //EditorGUILayout.PropertyField(m_SharedProfile, Styles.VolumeProfile);     // 自定义 profile 不开放
             serializedObject.ApplyModifiedProperties();
+            
+            CheckNullData();
+        }
+
+        private void CheckNullData() {
+            if (_funnylandMobileRendererData == null || _funnylandMobileRendererData.shaderResources == null) {
+                return;
+            }
+
+            if (_funnylandMobileRendererData.shaderResources.CheckHasNull()) {
+                ResourceReloader.TryReloadAllNullIn(_funnylandMobileRendererData, UniversalRenderPipelineAsset.packagePath);
+            }
         }
     }
 }
