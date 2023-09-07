@@ -397,6 +397,6 @@ Shader "SoFunny/Funnyland/FunnyStyle"
     }
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.FunnyStyleShader"
+    CustomEditor "SoFunny.Rendering.Funnyland.FunnyStyleShader"
 
 }
