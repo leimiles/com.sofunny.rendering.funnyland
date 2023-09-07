@@ -1,10 +1,12 @@
 using System;
-using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.Rendering.Universal;
+using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal.ShaderGUI
+namespace SoFunny.Rendering.Funnyland
 {
     internal class FunnyLitShader : BaseShaderGUI
     {
