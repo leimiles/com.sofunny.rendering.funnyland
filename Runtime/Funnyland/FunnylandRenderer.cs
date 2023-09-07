@@ -148,7 +148,7 @@ namespace SoFunny.Rendering.Funnyland {
                 shouldClear: true,
                 copyResolvedDepth: false);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_FunnyUIBackgroundBlurPass = new FunnyUIBackgroundBlurPass(RenderPassEvent.BeforeRenderingPostProcessing, data.uiBgBlurLevel);
+            m_FunnyUIBackgroundBlurPass = new FunnyUIBackgroundBlurPass(RenderPassEvent.AfterRenderingPostProcessing, data.enableUIBlur);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
@@ -352,14 +352,13 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
             
             #region UIBgBlur
-
             bool isUseUIBgBlur = (cameraData.camera.cameraType & CameraType.Game) != 0;
             if (isUseUIBgBlur){
                 m_FunnyUIBackgroundBlurPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_UIBackgroundBlurMaterial);
                 EnqueuePass(m_FunnyUIBackgroundBlurPass);
             }
             #endregion
-
+            
             #region post processing
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             
@@ -397,7 +396,6 @@ namespace SoFunny.Rendering.Funnyland {
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     applyPostProcessing && !hasPassesAfterPostProcessing;
                 
-
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved) {
 #if UNITY_EDITOR
