@@ -4,6 +4,15 @@ using UnityEngine.Rendering.Universal;
 
 namespace SoFunny.Rendering.Funnyland
 {
+    [System.Serializable]
+    public struct UIBlurSettings
+    {
+        [Range(2, 5)]
+        public int maxIterations;
+        [Range(0f, 5f)] 
+        public float blurRadius;
+    }
+
     public class FunnyUIBackgroundBlurPass : ScriptableRenderPass
     {
         private static readonly int BlurRadius = Shader.PropertyToID("_BlurRadius");
@@ -24,7 +33,7 @@ namespace SoFunny.Rendering.Funnyland
         private int[] m_UIBlurMipUpRTName;
         private int[] m_UIBlurMipDownRTName;
 
-        internal FunnyUIBackgroundBlurPass(RenderPassEvent evt, bool enable)
+        internal FunnyUIBackgroundBlurPass(RenderPassEvent evt, bool enable, UIBlurSettings uiBlurSettings)
         {
             renderPassEvent = evt;
             m_enable = enable;
@@ -44,9 +53,9 @@ namespace SoFunny.Rendering.Funnyland
                 m_UIBlurMipUpRT[i] = RTHandles.Alloc(m_UIBlurMipUpRTName[i], name: "_UIBlurMipUp" + i);
                 m_UIBlurMipDownRT[i] = RTHandles.Alloc(m_UIBlurMipDownRTName[i], name: "_UIBlurMipDown" + i);
             }
-            
-            m_MaxIterations = 2;
-            m_BlurRadius = 0.2f;
+
+            m_MaxIterations = uiBlurSettings.maxIterations;
+            m_BlurRadius = uiBlurSettings.blurRadius;
         }
 
         internal void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle sourceRTHandle, Material uiBgBlurMaterial)
@@ -66,12 +75,14 @@ namespace SoFunny.Rendering.Funnyland
             {
                 return;
             }
+
             CommandBuffer cmd = renderingData.commandBuffer;
-            
-            if (m_sourceRTHandle == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd)) {
+
+            if (m_sourceRTHandle == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
                 m_sourceRTHandle = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
-            
+
             using (new ProfilingScope(cmd, m_profilingSampler))
             {
                 cmd.SetGlobalFloat(BlurRadius, m_BlurRadius);
@@ -81,8 +92,8 @@ namespace SoFunny.Rendering.Funnyland
 
         private void DoBlur(CommandBuffer cmd)
         {
-            int tw = m_baseRTDescriptor.width >> 3;
-            int th = m_baseRTDescriptor.height >> 3;
+            int tw = m_baseRTDescriptor.width >> 1;
+            int th = m_baseRTDescriptor.height >> 1;
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
@@ -102,7 +113,7 @@ namespace SoFunny.Rendering.Funnyland
             }
 
             Blitter.BlitCameraTexture(cmd, m_sourceRTHandle, m_UIBlurMipDownRT[0], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_UIBgBlurMaterial, 0);
-            
+
             DoDualKawaseBlur(cmd, mipCount);
         }
 
@@ -126,7 +137,7 @@ namespace SoFunny.Rendering.Funnyland
 
                 lastUp = mipUp;
             }
-            
+
             Blitter.BlitCameraTexture(cmd, lastUp, m_sourceRTHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, m_UIBgBlurMaterial, 0);
         }
     }

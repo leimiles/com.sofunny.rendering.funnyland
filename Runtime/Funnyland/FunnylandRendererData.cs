@@ -116,6 +116,7 @@ namespace SoFunny.Rendering.Funnyland {
 
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
         [SerializeField] private bool m_enableUIBlur = false;
+        [SerializeField] private UIBlurSettings m_uiBlurSettings = new UIBlurSettings(){ maxIterations = 2, blurRadius = 0};
         
         [SerializeField] string[] m_ShaderTagLightModes;
         string[] m_DefaultShaderTagLightModes = new []{"FunnyLandMobileForward"};
@@ -227,6 +228,16 @@ namespace SoFunny.Rendering.Funnyland {
             {
                 SetDirty();
                 m_enableUIBlur = value;
+            }
+        }
+
+        public UIBlurSettings uiBlurSettings
+        {
+            get => m_uiBlurSettings;
+            set
+            {
+                SetDirty();
+                m_uiBlurSettings = value;
             }
         }
         
