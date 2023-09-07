@@ -400,6 +400,5 @@ Shader "SoFunny/Funnyland/FunnyTriplaneProj"
     }
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.FunnyTriplaneProjShader"
-
+    CustomEditor "SoFunny.Rendering.Funnyland.ShaderGUI.FunnyTriplaneProjShader"
 }
