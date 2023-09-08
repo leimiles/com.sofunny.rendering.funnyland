@@ -87,6 +87,14 @@ void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData f
     debugSurfaceData.clearCoatSmoothness = funnySurfaceData.clearCoatSmoothness;
 }
 
+half GetShadowArea(Light mainLight, half3 normal)
+{
+    half NdotL = saturate(dot(normal, mainLight.direction));
+    half shadowArea = (mainLight.shadowAttenuation * mainLight.direction) * NdotL;
+    shadowArea = smoothstep(0.0, 0.1, shadowArea);
+    return shadowArea;
+}
+
 half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
@@ -155,7 +163,8 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     #endif
 
     half4 finalColor = CalculateFinalColor(lightingData, surfaceData.alpha);
-    finalColor.rgb = lerp(finalColor.rgb * _MainLightShadowColor.rgb, finalColor.rgb, mainLight.shadowAttenuation * mainLight.distanceAttenuation);
+    half shadowArea = GetShadowArea(mainLight, inputData.normalWS);
+    finalColor.rgb = lerp(finalColor.rgb * _MainLightShadowColor.rgb, finalColor.rgb, shadowArea);
     return finalColor;
 }
 #endif
