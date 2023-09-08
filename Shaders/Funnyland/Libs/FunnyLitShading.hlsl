@@ -87,10 +87,10 @@ void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData f
     debugSurfaceData.clearCoatSmoothness = funnySurfaceData.clearCoatSmoothness;
 }
 
-half GetShadowArea(Light mainLight, half3 normal)
+half GetShadowArea(Light mainLight, half3 normalWS)
 {
-    half NdotL = saturate(dot(normal, mainLight.direction));
-    half shadowArea = (mainLight.shadowAttenuation * mainLight.direction) * NdotL;
+    half NdotL = saturate(dot(normalWS, mainLight.direction));
+    half shadowArea = (mainLight.shadowAttenuation * mainLight.distanceAttenuation) * NdotL;
     shadowArea = smoothstep(0.0, 0.1, shadowArea);
     return shadowArea;
 }
