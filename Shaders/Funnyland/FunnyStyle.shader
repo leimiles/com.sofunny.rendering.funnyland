@@ -8,21 +8,21 @@ Shader "SoFunny/Funnyland/FunnyStyle"
         [MainTexture] _BaseMap ("Base Map", 2D) = "white" { }
 
         [HideInInspector]_Cutoff ("Alpha Clipping", Range(0.0, 1.0)) = 0.5
-        
+
         [HideInInspector]_SpecGlossMap ("Specular Map", 2D) = "white" { }
-        
-        _MixMap("MixMap(R:Metallic G:AO B:RoughnessMask)", 2D) = "white" {}
+
+        _MixMap ("MixMap(R:Metallic G:AO B:RoughnessMask)", 2D) = "white" { }
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
-        _RoughnessHigh("Roughness High", Range(0.5, 1.0)) = 0.65
-        _RoughnessLow("Roughness Low", Range(0.0, 0.5)) = 0.2
-        _IndirectSpecularOcclusion("Indirect Specular Occlusion", Range(0.0, 1.0)) = 0.5
-        
+        _RoughnessHigh ("Roughness High", Range(0.5, 1.0)) = 1.0
+        _RoughnessLow ("Roughness Low", Range(0.0, 0.5)) = 0.2
+        _IndirectSpecularOcclusion ("Indirect Specular Occlusion", Range(0.0, 1.0)) = 0.5
+
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
-        
+
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
         _BumpScale ("Normal Scale", Range(0.0, 2.0)) = 1.0
-        
+
         [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
         [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
 
@@ -134,7 +134,7 @@ Shader "SoFunny/Funnyland/FunnyStyle"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitForwardPass.hlsl"
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "ShadowCaster"
@@ -398,5 +398,4 @@ Shader "SoFunny/Funnyland/FunnyStyle"
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SoFunny.Rendering.Funnyland.FunnyStyleShader"
-
 }
