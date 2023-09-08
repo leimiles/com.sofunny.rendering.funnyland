@@ -562,6 +562,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] TextureResources m_Textures;
         
+        [SerializeField] bool m_EnalbeSimpleRendering = false;
         // 不开放出来，仅用作画质分级 
         [SerializeField] bool m_EnablePost = true;
 
@@ -1070,7 +1071,11 @@ namespace UnityEngine.Rendering.Universal
             get { return m_EnablePost; }
             set { m_EnablePost = value; }
         }
-        
+
+        public bool enalbeSimpleRendering{
+            get { return m_EnalbeSimpleRendering; }
+            set { m_EnalbeSimpleRendering = value; }
+        }
         /// <summary>
         /// Graphics format requested for HDR color buffers.
         /// </summary>

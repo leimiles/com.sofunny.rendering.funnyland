@@ -104,7 +104,6 @@ namespace SoFunny.Rendering.Funnyland {
             m_UIBackgroundBlurMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.uiBackgroundBlurPS);
 
             ChangeAssetSettings();
-
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
                 var asset = UniversalRenderPipeline.asset;
@@ -126,7 +125,7 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
 
             ForwardLights.InitParams forwardInitParams;
-            forwardInitParams.forwardPlus = false;
+            forwardInitParams.forwardPlus = true;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_Clustering = true;
@@ -237,19 +236,19 @@ namespace SoFunny.Rendering.Funnyland {
             // 暂无需支持附加光阴影
             // bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 
-            bool isSimpleRendering = true;
+            bool isSimpleRendering = UniversalRenderPipeline.asset.enalbeSimpleRendering;
             bool isPreviewCamera = cameraData.isPreviewCamera;
             var createColorTexture = !isSimpleRendering;
 
-            bool requiresDepthTexture = cameraData.requiresDepthTexture && !isSimpleRendering;
+            bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool createDepthTexture = requiresDepthTexture;
             createDepthTexture |= !cameraData.resolveFinalTarget;
-
+            createDepthTexture &= !isSimpleRendering;
             bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType == CameraRenderType.Base && !isSimpleRendering;
 
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
-                bool intermediateRenderTexture = createDepthTexture || !sceneViewFilterEnabled;
+                bool intermediateRenderTexture = (createColorTexture || createDepthTexture) && !sceneViewFilterEnabled;
                 
                 RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
                 if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId) {
@@ -278,7 +277,7 @@ namespace SoFunny.Rendering.Funnyland {
 
             // 更改渲染目标至新的 color 和 depth buffer
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-
+            
             #region shadows pass
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -435,6 +434,7 @@ namespace SoFunny.Rendering.Funnyland {
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
+            Debug.Log("sasa");
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
@@ -549,8 +549,10 @@ namespace SoFunny.Rendering.Funnyland {
         float GetAdaptedScale() {
             float sideLength = (float)Mathf.Min(Screen.width, Screen.height);
             float scale = 1.0f;
-            if (sideLength > 720.0f) {
-                scale = 720.0f / sideLength;
+            if (!UniversalRenderPipeline.asset.enalbeSimpleRendering) {
+                if (sideLength > 720.0f) {
+                    scale = 720.0f / sideLength;
+                }
             }
             return scale;
         }
