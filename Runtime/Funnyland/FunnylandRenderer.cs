@@ -41,6 +41,8 @@ namespace SoFunny.Rendering.Funnyland {
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
         internal RTHandle m_DepthTexture;
+        RTHandle m_XRTargetHandleAlias;
+
         StencilState m_DefaultStencilState;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
@@ -124,7 +126,7 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
 
             ForwardLights.InitParams forwardInitParams;
-            forwardInitParams.forwardPlus = true;
+            forwardInitParams.forwardPlus = false;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_Clustering = true;
@@ -235,22 +237,33 @@ namespace SoFunny.Rendering.Funnyland {
             // 暂无需支持附加光阴影
             // bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
 
-            bool requiresDepthTexture = cameraData.requiresDepthTexture;
+            bool isSimpleRendering = true;
+            bool isPreviewCamera = cameraData.isPreviewCamera;
+            var createColorTexture = !isSimpleRendering;
+
+            bool requiresDepthTexture = cameraData.requiresDepthTexture && !isSimpleRendering;
             bool createDepthTexture = requiresDepthTexture;
             createDepthTexture |= !cameraData.resolveFinalTarget;
 
-            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType == CameraRenderType.Base;
+            bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType == CameraRenderType.Base && !isSimpleRendering;
 
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
                 bool intermediateRenderTexture = createDepthTexture || !sceneViewFilterEnabled;
+                
+                RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
+                if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId) {
+                    m_XRTargetHandleAlias?.Release();
+                    m_XRTargetHandleAlias = RTHandles.Alloc(targetId);
+                }
 
                 if (intermediateRenderTexture) {
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
                 }
+                
                 // 初始化新的 color 和 depth buffer
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
-                m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
+                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
             } else {
                 cameraData.baseCamera.TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraData);
                 var baseRenderer = (FunnylandMobileRenderer)baseCameraData.scriptableRenderer;
@@ -258,8 +271,9 @@ namespace SoFunny.Rendering.Funnyland {
                     m_ColorBufferSystem.Dispose();
                     m_ColorBufferSystem = baseRenderer.m_ColorBufferSystem;
                 }
-                m_ActiveCameraColorAttachment = m_ColorBufferSystem.PeekBackBuffer();
-                m_ActiveCameraDepthAttachment = baseRenderer.m_ActiveCameraDepthAttachment;
+                m_XRTargetHandleAlias = baseRenderer.m_XRTargetHandleAlias;
+                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
+                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
             }
 
             // 更改渲染目标至新的 color 和 depth buffer
@@ -290,7 +304,7 @@ namespace SoFunny.Rendering.Funnyland {
             }
 
             #region LUT
-            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated && !isSimpleRendering;
             if (generateColorGradingLUT) {
                 colorGradingLutPass.ConfigureDescriptor(in renderingData.postProcessingData, out var desc, out var filterMode);
                 RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
@@ -360,7 +374,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
             
             #region post processing
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
+            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated && !isSimpleRendering;
             
             // 开启直方图Debug需要在后处理之后进行FinalBlit
             bool hasPassesAfterPostProcessing = m_Histogram != HistogramChannel.None;
@@ -394,7 +408,8 @@ namespace SoFunny.Rendering.Funnyland {
                     // final PP always blit to camera target
                     applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                    applyPostProcessing && !hasPassesAfterPostProcessing;
+                    applyPostProcessing && !hasPassesAfterPostProcessing ||
+                    isSimpleRendering;
                 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved) {
@@ -456,6 +471,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
             m_DepthTexture?.Release();
+            m_XRTargetHandleAlias?.Release();
             hasReleasedRTs = true;
         }
 
