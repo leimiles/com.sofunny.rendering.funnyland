@@ -15,7 +15,7 @@ namespace SoFunny.Rendering.Funnyland {
     // 画质分级暂时不需data
     // [CreateAssetMenu(fileName = "GraphicQualitySettingData", menuName = "ScriptableObject/GraphicQualitySettingData", order = 0)]
     public class FunnyGraphicQualitySettingData : ScriptableObject {
-
+        public bool isSimpleRendering;
         public bool shadow;
         public bool post;
         public bool anisotropicTexture;
