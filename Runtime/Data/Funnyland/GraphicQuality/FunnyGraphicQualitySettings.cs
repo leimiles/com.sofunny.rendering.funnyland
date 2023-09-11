@@ -19,6 +19,7 @@ namespace SoFunny.Rendering.Funnyland {
                 return;
             }
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            RenderingSetting(asset, data.isSimpleRendering);
             ShadowSetting(asset, data.shadow);
             ShadingQuality();
             PostSetting(asset, data.post);
@@ -26,7 +27,14 @@ namespace SoFunny.Rendering.Funnyland {
             TextureQualitySetting((int)data.globalTextureMipmapLevel);
             AnisotropicTextureSetting(data.anisotropicTexture);
         }
-
+        private static void RenderingSetting(UniversalRenderPipelineAsset assets, bool isSimple) {
+            assets.enalbeSimpleRendering = isSimple;
+        }
+        private static void RenderingSetting(bool isSimple) {
+            var assets = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            assets.enalbeSimpleRendering = isSimple;
+        }
+        
         private static void ShadowSetting(UniversalRenderPipelineAsset assets, bool isShadow) {
             assets.supportsMainLightShadows = isShadow;
         }
@@ -126,6 +134,7 @@ namespace SoFunny.Rendering.Funnyland {
         /// </summary>
         public static void SetHighQualitySetting() {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            RenderingSetting(asset, false);
             ShadowSetting(asset, true);
             ShadingQuality();
             PostSetting(asset, true);
@@ -139,6 +148,7 @@ namespace SoFunny.Rendering.Funnyland {
         /// </summary>
         private static void SetLowQualitySetting() {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            RenderingSetting(asset, true);
             ShadowSetting(asset, false);
             ShadingQuality();
             PostSetting(asset, false);
