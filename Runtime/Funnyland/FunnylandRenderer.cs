@@ -277,7 +277,7 @@ namespace SoFunny.Rendering.Funnyland {
 
             // 更改渲染目标至新的 color 和 depth buffer
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
-            
+            // cmd.ClearRenderTarget(true, false, Color.black);
             #region shadows pass
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
@@ -331,7 +331,10 @@ namespace SoFunny.Rendering.Funnyland {
             renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
             renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
             renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
-            ClearFlag opaqueForwardPassClearFlag = (cameraData.renderType != CameraRenderType.Base) ? ClearFlag.None : ClearFlag.Color;
+            
+            // 用于SimpleRender时对堆栈相机进行ClearDepth
+            ClearFlag clearOverlayFlag = isSimpleRendering ? ClearFlag.DepthStencil : ClearFlag.None;
+            ClearFlag opaqueForwardPassClearFlag = (cameraData.renderType != CameraRenderType.Base) ? clearOverlayFlag : ClearFlag.Color;
             renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
             EnqueuePass(renderOpaqueForwardPass);
             #endregion
@@ -434,7 +437,6 @@ namespace SoFunny.Rendering.Funnyland {
         }
 
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, CommandBuffer cmd) {
-            Debug.Log("sasa");
             using (new ProfilingScope(null, Profiling.createCameraRenderTarget)) {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget) {
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
