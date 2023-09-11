@@ -111,7 +111,6 @@ namespace SoFunny.Rendering.Funnyland {
         public MeshResources meshResources = null;
         
         [SerializeField] LayerMask m_OccluderStencilLayerMask = 0;
-        [SerializeField] LayerMask m_CharacterStencilLayerMask = 0;
         private RenderObjects.RenderObjectsSettings m_OccluderStencilData = new RenderObjects.RenderObjectsSettings();
 
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
