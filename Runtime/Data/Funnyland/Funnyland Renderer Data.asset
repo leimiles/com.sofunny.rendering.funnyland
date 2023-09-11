@@ -33,9 +33,6 @@ MonoBehaviour:
   m_OccluderStencilLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  m_CharacterStencilLayerMask:
-    serializedVersion: 2
-    m_Bits: 16
   m_Histogram: 5
   m_enableUIBlur: 0
   m_uiBlurSettings:
