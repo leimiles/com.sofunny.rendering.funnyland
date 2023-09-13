@@ -132,9 +132,9 @@ namespace SoFunny.Rendering.Funnyland {
                 //     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
                 //     return shaderTagIds;
                 // }
-                ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
-                for (int i = 0; i < shaderTagIds.Length; ++i) {
-                    shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
+                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length];
+                for (int i = 0; i < shaderTags.Length; ++i) {
+                    shaderTagIds[i] = new ShaderTagId(shaderTags[i]);
                 }
 
                 return shaderTagIds;
