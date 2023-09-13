@@ -48,10 +48,10 @@ namespace SoFunny.Rendering.Funnyland {
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
-        
+
         RenderObjectsPass m_OccluderStencil;
         EffectsPass m_EffectsPass;
-        
+
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         FunnyUIBackgroundBlurPass m_FunnyUIBackgroundBlurPass;
@@ -66,16 +66,16 @@ namespace SoFunny.Rendering.Funnyland {
 #if UNITY_EDITOR
         HistogramPass m_HistogramPass;
 #endif
-        
+
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
         Material m_EffectsMaterial = null;
-        
+
 #if UNITY_EDITOR
         Material m_HistogramMaterial = null;
         ComputeShader m_HistogramComputerShader = null;
 #endif
-        
+
         Material m_UIBackgroundBlurMaterial = null;
 
         FunnyPostProcessPasses m_PostProcessPasses;
@@ -96,7 +96,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
             m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.funnyEffectsPS);
-            
+
 #if UNITY_EDITOR
             m_HistogramMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.histogramPS);
             m_HistogramComputerShader = data.shaderResources.histogramComputerShader;
@@ -113,7 +113,7 @@ namespace SoFunny.Rendering.Funnyland {
                 }
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
-            
+
             // 是否在开启阴影的时候剃齿Off阴影的变体
             this.stripShadowsOffVariants = false;
             this.stripAdditionalLightOffVariants = true;
@@ -136,13 +136,13 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            
+
             // 受击特效模板遮罩
             m_OccluderStencil = new RenderObjectsPass("occluderStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.occluderStencilData.filterSettings.RenderQueueType, data.occluderStencilData.filterSettings.LayerMask, data.occluderStencilData.cameraSettings);
             m_OccluderStencil.SetStencilState(data.occluderStencilData.stencilSettings.stencilReference, data.occluderStencilData.stencilSettings.stencilCompareFunction, data.occluderStencilData.stencilSettings.passOperation, data.occluderStencilData.stencilSettings.failOperation, data.occluderStencilData.stencilSettings.zFailOperation);
-            
+
             m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial);
-                
+
             m_CopyDepthPass = new CopyDepthPass(
                 RenderPassEvent.AfterRenderingSkybox,
                 m_CopyDepthMaterial,
@@ -186,9 +186,9 @@ namespace SoFunny.Rendering.Funnyland {
                 UniversalRenderPipeline.asset.reflectionProbeBoxProjection = true;
                 UniversalRenderPipeline.asset.shadowDistance = 50;
                 UniversalRenderPipeline.asset.shadowCascadeCount = 2;
-                UniversalRenderPipeline.asset.cascade2Split = 0.199f;
+                UniversalRenderPipeline.asset.cascade2Split = 0.25f;
                 UniversalRenderPipeline.asset.cascade3Split = Vector2.one;
-                UniversalRenderPipeline.asset.cascadeBorder = 0.1f;
+                UniversalRenderPipeline.asset.cascadeBorder = 0.2f;
                 UniversalRenderPipeline.asset.supportsSoftShadows = true;
                 UniversalRenderPipeline.asset.softShadowQuality = SoftShadowQuality.Medium;
                 UniversalRenderPipeline.asset.colorGradingMode = ColorGradingMode.LowDynamicRange;
@@ -249,7 +249,7 @@ namespace SoFunny.Rendering.Funnyland {
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
                 bool intermediateRenderTexture = (createColorTexture || createDepthTexture) && !sceneViewFilterEnabled;
-                
+
                 RenderTargetIdentifier targetId = BuiltinRenderTextureType.CameraTarget;
                 if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId) {
                     m_XRTargetHandleAlias?.Release();
@@ -259,7 +259,7 @@ namespace SoFunny.Rendering.Funnyland {
                 if (intermediateRenderTexture) {
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd);
                 }
-                
+
                 // 初始化新的 color 和 depth buffer
                 m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
                 m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
@@ -287,16 +287,14 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
             */
             #endregion
-            
+
             //cameraData.postProcessEnabled = false;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             if (m_PostProssType == PostProssType.Off) {
                 cameraData.postProcessEnabled = false;
-            }
-            else if (m_PostProssType == PostProssType.lastCamera && lastCameraInTheStack && cameraData.postProcessEnabled) {
+            } else if (m_PostProssType == PostProssType.lastCamera && lastCameraInTheStack && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
-            }
-            else if (m_PostProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base && cameraData.postProcessEnabled) {
+            } else if (m_PostProssType == PostProssType.BaseCamera && cameraData.renderType == CameraRenderType.Base && cameraData.postProcessEnabled) {
                 cameraData.postProcessEnabled = true;
             } else {
                 cameraData.postProcessEnabled = false;
@@ -331,14 +329,14 @@ namespace SoFunny.Rendering.Funnyland {
             renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
             renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
             renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
-            
+
             // 用于SimpleRender时对堆栈相机进行ClearDepth
             ClearFlag clearOverlayFlag = isSimpleRendering ? ClearFlag.DepthStencil : ClearFlag.None;
             ClearFlag opaqueForwardPassClearFlag = (cameraData.renderType != CameraRenderType.Base) ? clearOverlayFlag : ClearFlag.Color;
             renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
             EnqueuePass(renderOpaqueForwardPass);
             #endregion
-            
+
             #region outline
             EnqueuePass(m_OccluderStencil);
             EnqueuePass(m_EffectsPass);
@@ -366,18 +364,18 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
             EnqueuePass(m_RenderTransparentForwardPass);
             #endregion
-            
+
             #region UIBgBlur
             bool isUseUIBgBlur = (cameraData.camera.cameraType & CameraType.Game) != 0;
-            if (isUseUIBgBlur){
+            if (isUseUIBgBlur) {
                 m_FunnyUIBackgroundBlurPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_UIBackgroundBlurMaterial);
                 EnqueuePass(m_FunnyUIBackgroundBlurPass);
             }
             #endregion
-            
+
             #region post processing
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated && !isSimpleRendering;
-            
+
             // 开启直方图Debug需要在后处理之后进行FinalBlit
             bool hasPassesAfterPostProcessing = m_Histogram != HistogramChannel.None;
             bool applyFinalPostProcessing = false;
@@ -412,11 +410,11 @@ namespace SoFunny.Rendering.Funnyland {
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     applyPostProcessing && !hasPassesAfterPostProcessing ||
                     isSimpleRendering;
-                
+
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved) {
 #if UNITY_EDITOR
-                    if(camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView){
+                    if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView) {
                         m_HistogramPass.Setup(sourceForFinalPass);
                         EnqueuePass(m_HistogramPass);
                     }
@@ -424,7 +422,7 @@ namespace SoFunny.Rendering.Funnyland {
                     m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
-                
+
             }
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing) {
@@ -489,7 +487,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_HistogramPass?.Dispose();
             CoreUtils.Destroy(m_HistogramMaterial);
 #endif
-            
+
             CoreUtils.Destroy(m_UIBackgroundBlurMaterial);
         }
 
