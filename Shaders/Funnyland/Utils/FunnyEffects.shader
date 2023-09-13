@@ -1,4 +1,4 @@
-Shader "Hidden/SoFunny/Funnyland/Funny Render Pipeline/Effects"
+Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 {
     Properties
     {
@@ -233,15 +233,15 @@ Shader "Hidden/SoFunny/Funnyland/Funny Render Pipeline/Effects"
             #endif
 
                 output.positionCS = pos;
-                output.texcoord[0] = uv + _SelectOutlineTex_TexelSize.xy * float2(-1, -1);
-                output.texcoord[1] = uv + _SelectOutlineTex_TexelSize.xy * float2(0, -1);
-                output.texcoord[2] = uv + _SelectOutlineTex_TexelSize.xy * float2(1, -1);
-                output.texcoord[3] = uv + _SelectOutlineTex_TexelSize.xy * float2(-1, 0);
-                output.texcoord[4] = uv + _SelectOutlineTex_TexelSize.xy * float2(0, 0);
-                output.texcoord[5] = uv + _SelectOutlineTex_TexelSize.xy * float2(1, 0);
-                output.texcoord[6] = uv + _SelectOutlineTex_TexelSize.xy * float2(-1, 1);
-                output.texcoord[7] = uv + _SelectOutlineTex_TexelSize.xy * float2(0, 1);
-                output.texcoord[8] = uv + _SelectOutlineTex_TexelSize.xy * float2(1, 1);
+                output.texcoord[0] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(-1, -1);
+                output.texcoord[1] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(0, -1);
+                output.texcoord[2] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(1, -1);
+                output.texcoord[3] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(-1, 0);
+                output.texcoord[4] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(0, 0);
+                output.texcoord[5] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(1, 0);
+                output.texcoord[6] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(-1, 1);
+                output.texcoord[7] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(0, 1);
+                output.texcoord[8] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(1, 1);
                 return output;
             }
 

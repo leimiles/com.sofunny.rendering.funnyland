@@ -76,8 +76,8 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
             
-            [Reload("Shaders/Funnyland/Utils/VfxEffects.shader"), SerializeField]
-            internal Shader vfxEffectsPS;
+            [Reload("Shaders/Funnyland/Utils/FunnyEffects.shader"), SerializeField]
+            internal Shader funnyEffectsPS;
             
             [Reload("Shaders/Funnyland/Utils/Histogram.shader"), SerializeField]
             internal Shader histogramPS;
@@ -91,7 +91,7 @@ namespace SoFunny.Rendering.Funnyland {
             public bool CheckHasNull() {
                 return !copyDepthPS 
                        || !copyDepthPS 
-                       || !vfxEffectsPS 
+                       || !funnyEffectsPS 
                        || !histogramPS 
                        || !histogramComputerShader 
                        || !uiBackgroundBlurPS;
@@ -132,9 +132,9 @@ namespace SoFunny.Rendering.Funnyland {
                 //     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
                 //     return shaderTagIds;
                 // }
-                ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
-                for (int i = 0; i < shaderTagIds.Length; ++i) {
-                    shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
+                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length];
+                for (int i = 0; i < shaderTags.Length; ++i) {
+                    shaderTagIds[i] = new ShaderTagId(shaderTags[i]);
                 }
 
                 return shaderTagIds;
