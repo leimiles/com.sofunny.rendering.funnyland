@@ -140,6 +140,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Name "Outline"
 
             Cull Back
+            ZTest Off
             HLSLPROGRAM
 
             #pragma vertex vert
