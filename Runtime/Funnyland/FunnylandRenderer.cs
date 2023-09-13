@@ -95,7 +95,7 @@ namespace SoFunny.Rendering.Funnyland {
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
-            m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.vfxEffectsPS);
+            m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.funnyEffectsPS);
             
 #if UNITY_EDITOR
             m_HistogramMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.histogramPS);
