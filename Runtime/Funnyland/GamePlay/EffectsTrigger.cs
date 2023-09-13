@@ -47,6 +47,10 @@ namespace SoFunny.Rendering.Funnyland {
         //     occludeeState.isActive = true;
         //     SetOccludeeState(occludeeState);
         // }
+        //
+        // private void OnDisable() {
+        //     Stop();
+        // }
 
         public void SetOutlineState(OutlineState input) {
             var exist = false;
@@ -224,7 +228,7 @@ namespace SoFunny.Rendering.Funnyland {
         [System.Serializable]
         public struct OutlineParam {
             public OutlineType type;
-            [Range(0f, 0.1f)] public float with;
+            [Range(0f, 5.0f)] public float with;
             [ColorUsageAttribute(true, true)] public Color color;
         }
 
