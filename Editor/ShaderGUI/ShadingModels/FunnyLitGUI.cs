@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// </summary>
             public static GUIContent workflowModeText = EditorGUIUtility.TrTextContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
+            
+            public static GUIContent zWriteText = EditorGUIUtility.TrTextContent("Force ZWrite","是否强制开启深度写入");
 
             /// <summary>
             /// The text and tooltip for the specular Map GUI.
@@ -148,7 +150,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// The MaterialProperty for workflow mode.
             /// </summary>
             public MaterialProperty workflowMode;
-
+            
+            /// <summary>
+            /// 深度写入参数控制
+            /// </summary>
+            public MaterialProperty zWrite;
 
             // Surface Input Props
 
@@ -253,6 +259,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 // Surface Option Props
                 workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
+                zWrite = BaseShaderGUI.FindProperty("_ZWrite", properties, false);
                 // Surface Input Props
                 metallic = BaseShaderGUI.FindProperty("_MetallicOffset", properties);
                 specColor = BaseShaderGUI.FindProperty("_SpecColor", properties, false);

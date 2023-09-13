@@ -13,6 +13,7 @@ namespace SoFunny.Rendering.Funnyland
         static readonly string[] workflowModeNames = Enum.GetNames(typeof(FunnyLitGUI.WorkflowMode));
 
         private FunnyLitGUI.LitProperties litProperties;
+        private bool isOpaque;
         
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
@@ -76,6 +77,7 @@ namespace SoFunny.Rendering.Funnyland
             EditorGUIUtility.labelWidth = 0f;
 
             DoPopup(Styles.surfaceType, surfaceTypeProp, Styles.surfaceTypeNames);
+            DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
 
             //Transparent BlendMode 强制设置为 Alpha
             if (surfaceTypeProp != null)
@@ -96,18 +98,32 @@ namespace SoFunny.Rendering.Funnyland
                     {
                         receiveShadowsProp.floatValue = 0;
                     }
+                    
+                    if (litProperties.zWrite != null)
+                    {
+                        if (isOpaque)
+                        {
+                            litProperties.zWrite.floatValue = 0;
+                            isOpaque = false;
+                        }
+                        
+                        DrawFloatToggleProperty(FunnyLitGUI.Styles.zWriteText, litProperties.zWrite);
+                        // ZWriteControl
+                        // 0:Auto 1:ForceEnable 2ForceDisable
+                        zwriteProp.floatValue = litProperties.zWrite.floatValue == 1 ?  1 : 2;
+                    }
                 }
                 else
                 {
+                    isOpaque = true;
                     if (receiveShadowsProp != null)
                     {
+                        zwriteProp.floatValue = 0;
                         receiveShadowsProp.floatValue = 1;
                     }
                 }
             }
 
-            DoPopup(Styles.cullingText, cullingProp, Styles.renderFaceNames);
-            DoPopup(Styles.zwriteText, zwriteProp, Styles.zwriteNames);
             
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
 
