@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Lit material.
             /// </summary>
-            [Reload("Runtime/Materials/Lit.mat")]
+            [Reload("Runtime/Materials/Funnyland/Generals/FunnyLit.mat")]
             public Material lit;
 
             // particleLit is the URP default material for new particle systems.
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Particle Lit material.
             /// </summary>
-            [Reload("Runtime/Materials/ParticlesUnlit.mat")]
+            [Reload("Runtime/Materials/Funnyland/Particles/FunnyParticle.mat")]
             public Material particleLit;
 
             /// <summary>
