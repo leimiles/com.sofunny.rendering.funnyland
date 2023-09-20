@@ -243,6 +243,12 @@ namespace SoFunny.Rendering.Funnyland {
         protected override ScriptableRenderer Create() {
             return new FunnylandMobileRenderer(this);
         }
+
+        internal override Shader GetDefaultShader()
+        {
+            return Shader.Find("SoFunny/Funnyland/FunnyLit");
+        }
+
         protected override void OnEnable() {
             base.OnEnable();
             if (shaderResources == null) {
