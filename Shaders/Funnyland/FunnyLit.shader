@@ -15,6 +15,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
         _RoughnessOffset ("Roughness Offset", Range(-1.0, 1.0)) = -0.5
         _MetallicOffset("Metallic Offset", Range(-1.0, 1.0)) = -1.0
+        [HideInInspector]_MetallicGlossMap("Metallic", 2D) = "white" {}
         
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
