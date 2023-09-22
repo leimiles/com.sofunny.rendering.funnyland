@@ -244,10 +244,12 @@ namespace SoFunny.Rendering.Funnyland {
             return new FunnylandMobileRenderer(this);
         }
 
+#if UNITY_EDITOR
         internal override Shader GetDefaultShader()
         {
             return Shader.Find("SoFunny/Funnyland/FunnyLit");
         }
+#endif
 
         protected override void OnEnable() {
             base.OnEnable();
