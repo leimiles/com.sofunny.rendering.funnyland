@@ -76,6 +76,9 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
             internal Shader coreBlitPS;
             
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+            internal Shader coreBlitColorAndDepthPS;
+            
             [Reload("Shaders/Funnyland/Utils/FunnyEffects.shader"), SerializeField]
             internal Shader funnyEffectsPS;
             
@@ -118,7 +121,7 @@ namespace SoFunny.Rendering.Funnyland {
         [SerializeField] private UIBlurSettings m_uiBlurSettings = new UIBlurSettings(){ maxIterations = 2, blurRadius = 0};
         
         [SerializeField] string[] m_ShaderTagLightModes;
-        string[] m_DefaultShaderTagLightModes = new []{"FunnyLandMobileForward"};
+        string[] m_DefaultShaderTagLightModes = new []{"SRPDefaultUnlit", "FunnyLandMobileForward"};
 
         public ShaderTagId[] shaderTagIds {
             get {
@@ -132,11 +135,15 @@ namespace SoFunny.Rendering.Funnyland {
                 //     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
                 //     return shaderTagIds;
                 // }
-                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length];
+                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length + m_DefaultShaderTagLightModes.Length];
                 for (int i = 0; i < shaderTags.Length; ++i) {
-                    shaderTagIds[i] = new ShaderTagId(shaderTags[i]);
+                    shaderTagIds[i +  m_DefaultShaderTagLightModes.Length] = new ShaderTagId(shaderTags[i]);
                 }
-
+                
+                // 加入默认LightMode
+                for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
+                    shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
+                }
                 return shaderTagIds;
             }
         }

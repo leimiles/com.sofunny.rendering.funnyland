@@ -8,6 +8,7 @@ using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using SoFunny.Rendering.Funnyland;
 using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
@@ -761,7 +762,16 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 }
             }
-
+            
+            foreach (var data in m_RendererDataList)
+            {
+                if (data is FunnylandMobileRendererData funnyData)
+                {
+                    Blitter.Initialize(funnyData.shaderResources.coreBlitPS, funnyData.shaderResources.coreBlitColorAndDepthPS);
+                    break;
+                }
+            }
+            
             return pipeline;
         }
 
