@@ -180,7 +180,7 @@ namespace SoFunny.Rendering.Funnyland {
         private static void SetLowQualitySetting() {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, true);
-            ShadowSetting(asset, false);
+            ShadowSetting(asset, true);
             CopyColorSetting(false);
             ShadingQuality(ShaderQuality.Low);
             PostSetting(asset, false);
