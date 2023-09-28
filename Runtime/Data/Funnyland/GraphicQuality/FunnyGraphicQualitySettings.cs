@@ -13,6 +13,7 @@ namespace SoFunny.Rendering.Funnyland {
         Low,
         Custom
     }
+
     public static class FunnyGraphicQualitySettings {
         private static void SetQualityPrefab(ref FunnyGraphicQualitySettingData data) {
             if (data == null) {
@@ -21,7 +22,7 @@ namespace SoFunny.Rendering.Funnyland {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, data.isSimpleRendering);
             ShadowSetting(asset, data.shadow);
-            ShadingQuality();
+            ShadingQuality(data.shaderQuality);
             PostSetting(asset, data.post);
             DecalSetting();
             TextureQualitySetting((int)data.globalTextureMipmapLevel);
@@ -43,9 +44,39 @@ namespace SoFunny.Rendering.Funnyland {
             assets.supportsMainLightShadows = isShadow;
         }
         
-        private static void ShadingQuality() {
-
+        // 目前是在FunnyRender.ChangeAssetSettings中强制设置 无法更改 更改方式只有控制isSimpleRender 在SimpleRender的情况下会关闭
+        private static void CopyColorSetting(UniversalRenderPipelineAsset assets, bool isEnable) {
+            assets.supportsCameraOpaqueTexture = isEnable;
         }
+        private static void CopyColorSetting(bool isEnable) {
+            var assets = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            assets.supportsCameraOpaqueTexture = isEnable;
+        }
+        
+        // 目前是在FunnyRender.ChangeAssetSettings中强制设置 无法更改 更改方式只有控制isSimpleRender 在SimpleRender的情况下会关闭
+        private static void CopyDepthSetting(UniversalRenderPipelineAsset assets, bool isEnable) {
+            assets.supportsCameraDepthTexture = isEnable;
+        }
+        private static void CopyDepthSetting(bool isEnable) {
+            var assets = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
+            assets.supportsCameraDepthTexture = isEnable;
+        }
+
+        #region shader表现设置
+        private static void ShadingQuality(ShaderQuality shaderQuality) {
+            SetReflectQuality(shaderQuality);
+        }
+
+        private static void SetReflectQuality(ShaderQuality shaderQuality) {
+            if (shaderQuality == ShaderQuality.High) {
+                CopyColorSetting(true);
+                Shader.EnableKeyword("_USE_REFRACT");
+            } else {
+                Shader.DisableKeyword("_USE_REFRACT");
+            }
+        }
+
+        #endregion
 
         private static void PostSetting(UniversalRenderPipelineAsset assets, bool isPost) {
             assets.supportPost = isPost;
@@ -136,7 +167,7 @@ namespace SoFunny.Rendering.Funnyland {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, false);
             ShadowSetting(asset, true);
-            ShadingQuality();
+            ShadingQuality(ShaderQuality.High);
             PostSetting(asset, true);
             DecalSetting();
             TextureQualitySetting((int)GlobalTextureMipmapLevel.Full);
@@ -150,7 +181,7 @@ namespace SoFunny.Rendering.Funnyland {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, true);
             ShadowSetting(asset, false);
-            ShadingQuality();
+            ShadingQuality(ShaderQuality.Low);
             PostSetting(asset, false);
             DecalSetting();
             TextureQualitySetting((int)GlobalTextureMipmapLevel.Half);

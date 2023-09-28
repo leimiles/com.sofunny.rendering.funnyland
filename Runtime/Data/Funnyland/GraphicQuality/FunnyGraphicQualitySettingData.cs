@@ -12,6 +12,12 @@ namespace SoFunny.Rendering.Funnyland {
         Eighth = 3
     }
     
+    public enum ShaderQuality {
+        High,
+        Low,
+        Custom
+    }
+    
     // 画质分级暂时不需data
     // [CreateAssetMenu(fileName = "GraphicQualitySettingData", menuName = "ScriptableObject/GraphicQualitySettingData", order = 0)]
     public class FunnyGraphicQualitySettingData : ScriptableObject {
@@ -20,5 +26,6 @@ namespace SoFunny.Rendering.Funnyland {
         public bool post;
         public bool anisotropicTexture;
         public GlobalTextureMipmapLevel globalTextureMipmapLevel;
+        public ShaderQuality shaderQuality;
     }
 }
