@@ -16,28 +16,43 @@ half TrowbridgeReitzNormalDistribution(half NdotH, half roughness)
 half3 FunnyLightingSpecular(half3 lightDir, half3 normal, half3 viewDir, half4 specular, half roughness)
 {
     float3 halfVec = SafeNormalize(float3(lightDir) + float3(viewDir));
-    half NdotH = half(saturate(dot(normal, halfVec)));
+    half NdotH = saturate(dot(normal, halfVec));
     half specularTerm = TrowbridgeReitzNormalDistribution(NdotH, roughness);
     return specularTerm * specular.rgb;
 }
 
-half3 CalculateFunnyBlinnPhong(Light light, InputData inputData, FunnySurfaceData surfaceData)
+half3 CalculateSubsurface(Light light, InputData inputData, FunnyJellySurfaceData surfaceData, out half subsurfaceTerm)
+{
+    half3 h = normalize(-light.direction + inputData.normalWS * surfaceData.distortion);
+    half VdotH = dot(inputData.viewDirectionWS, -h);
+    subsurfaceTerm = saturate(PositivePow(VdotH, surfaceData.power) * (1 - surfaceData.thickness));
+    return subsurfaceTerm * surfaceData.color.rgb * surfaceData.intensity;
+}
+
+half3 CalculateDirectLighting(Light light, InputData inputData, FunnyJellySurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-    half3 radiance = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+    half NdotL = saturate(dot(inputData.normalWS, light.direction) * 0.5 + 1.0);
+    half3 radiance = attenuatedLightColor * NdotL;
 
+    half subsurfaceTerm = 0;
+    half3 subsurfaceColor = CalculateSubsurface(light, inputData, surfaceData, subsurfaceTerm);
+    subsurfaceColor = lerp(subsurfaceColor, 0, saturate(surfaceData.transmission - 0.3)); //[0, 0.7]
+    
+    
     half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
     half roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), HALF_MIN_SQRT);
     half3 lightSpecularColor = FunnyLightingSpecular(light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), roughness);
+    half3 diffuseColor = surfaceData.albedo * saturate(1 - subsurfaceTerm - surfaceData.transmission);
 
     #if _ALPHAPREMULTIPLY_ON
-        return (radiance * (surfaceData.albedo * surfaceData.alpha + lightSpecularColor));
+        return (radiance * (diffuseColor * surfaceData.alpha + lightSpecularColor) + subsurfaceColor);
     #else
-        return (radiance * (surfaceData.albedo + lightSpecularColor));
+        return (radiance * (diffuseColor + lightSpecularColor) + subsurfaceColor);
     #endif
 }
 
-half3 CalculateEnvironmentSpecular(InputData inputData, FunnySurfaceData surfaceData)
+half3 CalculateEnvironmentSpecular(InputData inputData, FunnyJellySurfaceData surfaceData)
 {
     half3 reflectVector = reflect(-inputData.viewDirectionWS, inputData.normalWS);
     half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.smoothness);
@@ -56,14 +71,14 @@ half3 CalculateEnvironmentSpecular(InputData inputData, FunnySurfaceData surface
     return irradiance * irradianceMask;
 }
 
-half3 CalculateGI(InputData inputData, FunnySurfaceData surfaceData)
+half3 CalculateGI(InputData inputData, FunnyJellySurfaceData surfaceData)
 {
     half3 indirectSpecular = CalculateEnvironmentSpecular(inputData, surfaceData);
     half3 indirectDiffuse = inputData.bakedGI;
     return indirectDiffuse + indirectSpecular;
 }
 
-LightingData CreateLightingData(InputData inputData, FunnySurfaceData surfaceData)
+LightingData CreateLightingData(InputData inputData, FunnyJellySurfaceData surfaceData)
 {
     LightingData lightingData;
 
@@ -76,7 +91,7 @@ LightingData CreateLightingData(InputData inputData, FunnySurfaceData surfaceDat
     return lightingData;
 }
 
-void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData funnySurfaceData)
+void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnyJellySurfaceData funnySurfaceData)
 {
     debugSurfaceData.albedo = funnySurfaceData.albedo;
     debugSurfaceData.specular = funnySurfaceData.specular;
@@ -98,7 +113,7 @@ half GetShadowArea(Light mainLight, half3 normalWS)
     return shadowArea;
 }
 
-half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
+half4 FunnyFragmentSampleSubsurface(InputData inputData, FunnyJellySurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)
     half4 debugColor;
@@ -129,7 +144,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     if (IsMatchingLightLayer(mainLight.layerMask, meshRenderingLayers))
     #endif
     {
-        lightingData.mainLightColor += CalculateFunnyBlinnPhong(mainLight, inputData, surfaceData);
+        lightingData.mainLightColor += CalculateDirectLighting(mainLight, inputData, surfaceData);
     }
     
     #if defined(_ADDITIONAL_LIGHTS)
@@ -145,7 +160,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
     #endif
         {
-            lightingData.additionalLightsColor += CalculateFunnyBlinnPhong(light, inputData, surfaceData);
+            lightingData.additionalLightsColor += CalculateDirectLighting(light, inputData, surfaceData);
         }
     }
     #endif
@@ -156,7 +171,7 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
         if (IsMatchingLightLayer(light.layerMask, meshRenderingLayers))
     #endif
         {
-            lightingData.additionalLightsColor += CalculateFunnyBlinnPhong(light, inputData, surfaceData);
+            lightingData.additionalLightsColor += CalculateDirectLighting(light, inputData, surfaceData);
         }
     LIGHT_LOOP_END
     #endif
@@ -170,4 +185,20 @@ half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
     finalColor.rgb = lerp(finalColor.rgb * _MainLightShadowColor.rgb, finalColor.rgb, shadowArea);
     return finalColor;
 }
+
+void CalculateTransmission(inout half4 color, InputData inputData, FunnyJellySurfaceData surfaceData)
+{
+    half insideRefractValue = lerp(0.02, 0, surfaceData.transmission);
+    half4 insideObjMap = SAMPLE_TEXTURE2D(_ScreenColorRT, sampler_ScreenColorRT, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * insideRefractValue);
+    half3 insideColor = lerp(color.rgb + insideObjMap.rgb * surfaceData.color.rgb, insideObjMap.rgb, saturate(surfaceData.transmission - 0.3));//[0, 0.7]
+    color.rgb = lerp(color.rgb, insideColor, surfaceData.transmission);
+
+    #ifdef _USE_REFRACT
+    half bgRefractValue = lerp(0.1, 0, surfaceData.transmission);
+    half4 screenBgMap = SAMPLE_TEXTURE2D(_BgColorRT, sampler_BgColorRT, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * bgRefractValue);
+    half3 bgColor = lerp(0, screenBgMap.rgb * saturate(1 - surfaceData.thickness), surfaceData.transmission);
+    color.rgb += bgColor;
+    #endif
+}
+
 #endif

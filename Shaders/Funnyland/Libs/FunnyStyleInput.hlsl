@@ -26,7 +26,6 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float , _RoughnessHigh)
         UNITY_DOTS_INSTANCED_PROP(float , _RoughnessLow)
         UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
-        UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
     #define _BaseColor                      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _BaseColor)
