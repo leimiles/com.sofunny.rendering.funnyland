@@ -182,7 +182,9 @@ namespace SoFunny.Rendering.Funnyland {
             if (UniversalRenderPipeline.asset != null) {
                 UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
                 UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
+#if UNITY_EDITOR
                 UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
+#endif
                 UniversalRenderPipeline.asset.useSRPBatcher = true;
                 UniversalRenderPipeline.asset.supportsDynamicBatching = false;
                 UniversalRenderPipeline.asset.supportsHDR = false;

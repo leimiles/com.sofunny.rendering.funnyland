@@ -134,10 +134,11 @@ namespace UnityEditor.Rendering.Universal
             
                 EditorGUILayout.PropertyField(serialized.enableSimpleRenderingProp, Styles.enableSimpleRenderingText);
                 EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
-                EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
-                EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
-                EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
-                EditorGUI.EndDisabledGroup();
+                // Asset 不再控制CopyColor 全部由代码控制
+                // EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
+                // EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
+                // EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
+                // EditorGUI.EndDisabledGroup();
                 EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
             }
         }

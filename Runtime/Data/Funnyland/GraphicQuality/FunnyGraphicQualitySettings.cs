@@ -69,7 +69,6 @@ namespace SoFunny.Rendering.Funnyland {
 
         private static void SetReflectQuality(ShaderQuality shaderQuality) {
             if (shaderQuality == ShaderQuality.High) {
-                CopyColorSetting(true);
                 Shader.EnableKeyword("_FRP_REFRACT");
             } else {
                 Shader.DisableKeyword("_FRP_REFRACT");
@@ -167,6 +166,7 @@ namespace SoFunny.Rendering.Funnyland {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, false);
             ShadowSetting(asset, true);
+            CopyColorSetting(true);
             ShadingQuality(ShaderQuality.High);
             PostSetting(asset, true);
             DecalSetting();
@@ -181,6 +181,7 @@ namespace SoFunny.Rendering.Funnyland {
             var asset = (UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline;
             RenderingSetting(asset, true);
             ShadowSetting(asset, false);
+            CopyColorSetting(false);
             ShadingQuality(ShaderQuality.Low);
             PostSetting(asset, false);
             DecalSetting();
