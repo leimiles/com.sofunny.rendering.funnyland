@@ -193,7 +193,7 @@ void CalculateTransmission(inout half4 color, InputData inputData, FunnyJellySur
     half3 insideColor = lerp(color.rgb + insideObjMap.rgb * surfaceData.color.rgb, insideObjMap.rgb, saturate(surfaceData.transmission - 0.3));//[0, 0.7]
     color.rgb = lerp(color.rgb, insideColor, surfaceData.transmission);
 
-    #ifdef _USE_REFRACT
+    #if defined(_FRP_REFRACT) && defined(_USE_REFRACT)
     half bgRefractValue = lerp(0.1, 0, surfaceData.transmission);
     half4 screenBgMap = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * bgRefractValue);
     half3 bgColor = lerp(0, screenBgMap.rgb * saturate(1 - surfaceData.thickness), surfaceData.transmission);

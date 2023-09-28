@@ -49,7 +49,7 @@ CBUFFER_END
     #define _RoughnessOffset        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _RoughnessOffset)
     #define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _BumpScale)
 
-    #define _SubsurfaceColor        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceColor)
+    #define _SubsurfaceColor        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _SubsurfaceColor)
     #define _SubsurfaceDistortion   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceDistortion)
     #define _SubsurfaceAttenuation  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceAttenuation)
     #define _SubsurfaceIntensity    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceIntensity)
