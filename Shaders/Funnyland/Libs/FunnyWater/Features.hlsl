@@ -75,7 +75,7 @@ float2 RefractionOffset(float2 screenPos, float3 viewDir, float3 normalWS, float
 	//Normalized to match the more accurate method
 	float2 offset = normalWS.xz * 0.5;
 
-	#if PHYSICAL_REFRACTION	
+	#if defined(_FRP_REFRACT) && defined(PHYSICAL_REFRACTION)
 	//Light direction as traveling towards the eye, through the water surface
 	float3 rayDir = refract(-viewDir, normalWS, REFRACTION_IOR_RCP);
 	//Convert to view-space, because the coordinates are used to sample a screen-space texture
@@ -102,7 +102,7 @@ float3 SampleOpaqueTexture(float4 screenPos, float2 offset, float dispersion)
 	
 	float3 sceneColor = SampleSceneColor(screenPos.xy).rgb;
 	
-	#if PHYSICAL_REFRACTION //Chromatic part
+	#if defined(_FRP_REFRACT) && defined(PHYSICAL_REFRACTION)
 	if(dispersion > 0)
 	{
 		float chromaShift = (length(offset) * dispersion) / screenPos.w;

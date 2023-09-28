@@ -173,6 +173,7 @@ Shader "SoFunny/Funnyland/FunnyWater"
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile_fragment _ _FRP_REFRACT
 
             //Unity defined keywords
             #pragma multi_compile_fog
