@@ -61,8 +61,7 @@ TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
 TEXTURE2D(_ThicknessMap);   SAMPLER(sampler_ThicknessMap);
 
 TEXTURE2D(_ScreenColorRT);   SAMPLER(sampler_ScreenColorRT);
-TEXTURE2D(_BgColorRT);   SAMPLER(sampler_BgColorRT);
-
+TEXTURE2D_X(_CameraOpaqueTexture); SAMPLER(sampler_CameraOpaqueTexture);
 
 inline void InitializeSubsurfaceData(float2 uv, out FunnyJellySurfaceData outSurfaceData)
 {

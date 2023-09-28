@@ -98,7 +98,7 @@ Shader "SoFunny/Funnyland/FunnyJelly"
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _ _USE_REFRACT //折射
+            #pragma multi_compile_fragment _ _USE_REFRACT //折射
             // #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             // #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
