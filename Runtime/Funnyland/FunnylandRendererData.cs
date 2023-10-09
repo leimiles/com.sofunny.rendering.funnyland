@@ -79,6 +79,9 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
             
+            [Reload("Shaders/Utils/Sampling.shader")]
+            public Shader samplingPS;
+            
             [Reload("Shaders/Funnyland/Utils/FunnyEffects.shader"), SerializeField]
             internal Shader funnyEffectsPS;
             

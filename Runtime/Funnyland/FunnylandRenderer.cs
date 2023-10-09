@@ -54,6 +54,10 @@ namespace SoFunny.Rendering.Funnyland {
 
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
+        CopyColorPass m_CopyColorPass;
+        
+        RTHandle m_OpaqueColor;
+
         FunnyUIBackgroundBlurPass m_FunnyUIBackgroundBlurPass;
         FinalBlitPass m_FinalBlitPass;
         bool m_DepthPrimingRecommended;
@@ -70,6 +74,8 @@ namespace SoFunny.Rendering.Funnyland {
         Material m_BlitMaterial = null;
         Material m_CopyDepthMaterial = null;
         Material m_EffectsMaterial = null;
+        Material m_SamplingMaterial = null;
+
 
 #if UNITY_EDITOR
         Material m_HistogramMaterial = null;
@@ -96,6 +102,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.copyDepthPS);
             m_EffectsMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.funnyEffectsPS);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.samplingPS);
 
 #if UNITY_EDITOR
             m_HistogramMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.histogramPS);
@@ -136,6 +143,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 
             // 受击特效模板遮罩
             m_OccluderStencil = new RenderObjectsPass("occluderStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.occluderStencilData.filterSettings.RenderQueueType, data.occluderStencilData.filterSettings.LayerMask, data.occluderStencilData.cameraSettings);
@@ -174,7 +182,9 @@ namespace SoFunny.Rendering.Funnyland {
             if (UniversalRenderPipeline.asset != null) {
                 UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
                 UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
-                UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = false;
+#if UNITY_EDITOR
+                UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
+#endif
                 UniversalRenderPipeline.asset.useSRPBatcher = true;
                 UniversalRenderPipeline.asset.supportsDynamicBatching = false;
                 UniversalRenderPipeline.asset.supportsHDR = false;
@@ -248,6 +258,8 @@ namespace SoFunny.Rendering.Funnyland {
             createDepthTexture |= !cameraData.resolveFinalTarget;
             createDepthTexture &= !isSimpleRendering;
             bool requiresDepthCopyPass = (renderingData.cameraData.requiresDepthTexture) && createDepthTexture && cameraData.renderType == CameraRenderType.Base && !isSimpleRendering;
+            // copyColor 和 copyDepth 再分级中都是跟随 isPreview判断
+            bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture && !isSimpleRendering && !isPreviewCamera;
 
             if (cameraData.renderType == CameraRenderType.Base) {
                 bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
@@ -350,6 +362,21 @@ namespace SoFunny.Rendering.Funnyland {
                 if (RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null)) {
                     EnqueuePass(m_DrawSkyboxPass);
                 }
+            }
+            #endregion
+            
+            #region  copyColor pass
+            if (copyColorPass)
+            {
+                // TODO: Downsampling method should be stored in the renderer instead of in the asset.
+                // We need to migrate this data to renderer. For now, we query the method in the active asset.
+                Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+                var descriptor = cameraTargetDescriptor;
+                CopyColorPass.ConfigureDescriptor(downsamplingMethod, ref descriptor, out var filterMode);
+
+                RenderingUtils.ReAllocateIfNeeded(ref m_OpaqueColor, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
+                EnqueuePass(m_CopyColorPass);
             }
             #endregion
 
@@ -475,6 +502,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_AdditionalLightsShadowCasterPass?.Dispose();
             m_DepthTexture?.Release();
             m_XRTargetHandleAlias?.Release();
+            m_OpaqueColor?.Release();
             hasReleasedRTs = true;
         }
 
@@ -486,6 +514,8 @@ namespace SoFunny.Rendering.Funnyland {
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_EffectsMaterial);
+            CoreUtils.Destroy(m_SamplingMaterial);
+
 #if UNITY_EDITOR
             m_HistogramPass?.Dispose();
             CoreUtils.Destroy(m_HistogramMaterial);
