@@ -186,16 +186,32 @@ half4 FunnyFragmentSampleSubsurface(InputData inputData, FunnyJellySurfaceData s
     return finalColor;
 }
 
+half4 SamplerBgTexture(half2 screenUV, half transmission)
+{
+    float2 texelSize = _CameraOpaqueTexture_TexelSize.xy;
+    half2 uv = screenUV;
+
+    //Kawase Blur
+    half4 sum = 0;
+    half pixelOffset = lerp(4, 1, transmission);
+    sum += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv + float2(pixelOffset + 0.5, pixelOffset + 0.5) * texelSize); 
+    sum += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv + float2(-pixelOffset - 0.5, pixelOffset + 0.5) * texelSize); 
+    sum += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv + float2(-pixelOffset - 0.5, -pixelOffset - 0.5) * texelSize); 
+    sum += SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, uv + float2(pixelOffset + 0.5, -pixelOffset - 0.5) * texelSize); 
+    return sum * 0.25;
+}
+
 void CalculateTransmission(inout half4 color, InputData inputData, FunnyJellySurfaceData surfaceData)
 {
-    half insideRefractValue = lerp(0.02, 0, surfaceData.transmission);
-    half4 insideObjMap = SAMPLE_TEXTURE2D(_ScreenColorRT, sampler_ScreenColorRT, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * insideRefractValue);
-    half3 insideColor = lerp(color.rgb + insideObjMap.rgb * surfaceData.color.rgb, insideObjMap.rgb, saturate(surfaceData.transmission - 0.3));//[0, 0.7]
-    color.rgb = lerp(color.rgb, insideColor, surfaceData.transmission);
+    // 内部物体颜色计算暂时去掉
+    // half insideRefractValue = lerp(0.02, 0, surfaceData.transmission);
+    // half4 insideObjMap = SAMPLE_TEXTURE2D(_ScreenColorRT, sampler_ScreenColorRT, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * insideRefractValue);
+    // half3 insideColor = lerp(color.rgb + insideObjMap.rgb * surfaceData.color.rgb, insideObjMap.rgb, saturate(surfaceData.transmission - 0.3));//[0, 0.7]
+    // color.rgb = lerp(color.rgb, insideColor, surfaceData.transmission);
 
     #if defined(_FRP_REFRACT) && defined(_USE_REFRACT)
     half bgRefractValue = lerp(0.1, 0, surfaceData.transmission);
-    half4 screenBgMap = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * bgRefractValue);
+    half4 screenBgMap = SamplerBgTexture(inputData.normalizedScreenSpaceUV + inputData.normalWS.yz * bgRefractValue, surfaceData.transmission);
     half3 bgColor = lerp(0, screenBgMap.rgb * saturate(1 - surfaceData.thickness), surfaceData.transmission);
     color.rgb += bgColor;
     #endif

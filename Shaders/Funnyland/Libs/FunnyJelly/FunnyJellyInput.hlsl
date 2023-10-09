@@ -21,6 +21,8 @@ CBUFFER_START(UnityPerMaterial)
     half _SubsurfaceIntensity;
     half _ThicknessOffset;
     half _Transmission;
+
+    half4 _CameraOpaqueTexture_TexelSize;
 CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
@@ -60,7 +62,6 @@ CBUFFER_END
 TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
 TEXTURE2D(_ThicknessMap);   SAMPLER(sampler_ThicknessMap);
 
-TEXTURE2D(_ScreenColorRT);   SAMPLER(sampler_ScreenColorRT);
 TEXTURE2D_X(_CameraOpaqueTexture); SAMPLER(sampler_CameraOpaqueTexture);
 
 inline void InitializeSubsurfaceData(float2 uv, out FunnyJellySurfaceData outSurfaceData)
