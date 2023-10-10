@@ -57,7 +57,7 @@ Shader "SoFunny/Funnyland/FunnyWater"
         _UnderwaterSurfaceSmoothness("Underwater Surface Smoothness", Range(0, 1)) = 0.8
         _UnderwaterRefractionOffset("Underwater Refraction Offset", Range(0, 1)) = 0.2
 
-        [Toggle(_REFRACTION)] _RefractionOn("Enable Refraction", Float) = 1
+        [Toggle(_WATER_REFRACTION)] _RefractionOn("Enable Refraction", Float) = 1
         _RefractionStrength("Refraction Strength", Range(0, 1)) = 0.1
         _RefractionChromaticAberration("Refraction Chromatic Aberration)", Range(0, 1)) = 1
 
@@ -194,7 +194,7 @@ Shader "SoFunny/Funnyland/FunnyWater"
             #pragma shader_feature_local _WAVES
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
             #pragma shader_feature_local_fragment _DISABLE_DEPTH_TEX
-            #pragma shader_feature_local_fragment _REFRACTION
+            #pragma shader_feature_local_fragment _WATER_REFRACTION
             #pragma shader_feature_local_fragment _ADVANCED_SHADING
             #pragma shader_feature_local_fragment _UNLIT
             #pragma shader_feature_local_fragment _CAUSTICS
@@ -206,7 +206,11 @@ Shader "SoFunny/Funnyland/FunnyWater"
             #if _ADVANCED_SHADING
             #define RESAMPLE_REFRACTION_DEPTH 1
             #define PHYSICAL_REFRACTION 1
-
+            
+            #if _WATER_REFRACTION && _FRP_REFRACT
+                #define _REFRACTION 1
+            #endif
+            
             #if _REFRACTION //Requires opaque texture
                 #define COLOR_ABSORPTION 1
             #endif

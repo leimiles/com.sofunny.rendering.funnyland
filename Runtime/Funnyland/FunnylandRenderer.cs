@@ -182,9 +182,9 @@ namespace SoFunny.Rendering.Funnyland {
             if (UniversalRenderPipeline.asset != null) {
                 UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
                 UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
-#if UNITY_EDITOR
-                UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
-#endif
+// #if UNITY_EDITOR
+//                 UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
+// #endif
                 UniversalRenderPipeline.asset.useSRPBatcher = true;
                 UniversalRenderPipeline.asset.supportsDynamicBatching = false;
                 UniversalRenderPipeline.asset.supportsHDR = false;
@@ -324,18 +324,7 @@ namespace SoFunny.Rendering.Funnyland {
                 EnqueuePass(colorGradingLutPass);
             }
             #endregion
-
-            // 分配 m_DepthTexture 内存
-            var depthDescriptor = cameraTargetDescriptor;
-            depthDescriptor.graphicsFormat = GraphicsFormat.None;
-            depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-            depthDescriptor.depthBufferBits = k_DepthBufferBits;
-            depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-            RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
-            cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
+            
             #region opaque pass
             RenderBufferStoreAction opaquePassColorStoreAction = RenderBufferStoreAction.Store;
             // 因为需要 copy depth，所以保存 store action，否则 don't care 才是性能之道
@@ -377,13 +366,30 @@ namespace SoFunny.Rendering.Funnyland {
                 RenderingUtils.ReAllocateIfNeeded(ref m_OpaqueColor, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
+            } else {
+                m_OpaqueColor?.Release();
             }
             #endregion
 
             #region  copyDepth pass
             if (requiresDepthCopyPass) {
+                // 分配 m_DepthTexture 内存
+                var depthDescriptor = cameraTargetDescriptor;
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+                cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
+            }
+
+            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthCopyPass) {
+                Shader.SetGlobalTexture("_CameraDepthTexture", SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
             #endregion
 
