@@ -173,7 +173,7 @@ Shader "SoFunny/Funnyland/FunnyWater"
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile _ _CLUSTERED_RENDERING
-            #pragma multi_compile_fragment _ _FRP_REFRACT
+            #pragma multi_compile_fragment _ _FRP_HIGH_SHADER_QUALITY
 
             //Unity defined keywords
             #pragma multi_compile_fog
@@ -206,8 +206,9 @@ Shader "SoFunny/Funnyland/FunnyWater"
             #if _ADVANCED_SHADING
             #define RESAMPLE_REFRACTION_DEPTH 1
             #define PHYSICAL_REFRACTION 1
-            
-            #if _WATER_REFRACTION && _FRP_REFRACT
+
+            // 开启高品质渲染会关闭折射效果
+            #if _WATER_REFRACTION && _FRP_HIGH_SHADER_QUALITY
                 #define _REFRACTION 1
             #endif
             
