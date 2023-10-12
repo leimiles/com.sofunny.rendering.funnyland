@@ -1,5 +1,5 @@
-#ifndef FUNNY_LIT_PASS_INCLUDED
-#define FUNNY_LIT_PASS_INCLUDED
+#ifndef FUNNY_JELLY_FORWARD_PASS_INCLUDED
+#define FUNNY_JELLY_FORWARD_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
@@ -185,8 +185,7 @@ void LitPassFragmentSimple(
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
 
-    half4 color = FunnyFragmentSampleSubsurface(inputData, surfaceData);
-    CalculateTransmission(color, inputData, surfaceData);
+    half4 color = FunnyFragmentSubsurface(inputData, surfaceData);
     
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));

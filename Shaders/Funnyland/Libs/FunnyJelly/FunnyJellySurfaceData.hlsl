@@ -16,11 +16,10 @@ struct FunnyJellySurfaceData
     half  clearCoatSmoothness;
 
     half thickness;
-    half distortion;
-    half power;
-    half intensity;
+    half subsurfaceIntensity;
     half4 color;
     half transmission;
+    half refractIntensity;
 };
 
 #endif

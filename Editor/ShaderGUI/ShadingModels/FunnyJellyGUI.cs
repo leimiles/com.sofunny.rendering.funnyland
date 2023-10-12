@@ -142,8 +142,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "厚度图.");
             public static GUIContent subsurfaceColorText = EditorGUIUtility.TrTextContent("Subsurface Color",
                 "次表面散射颜色控制.");
-            public static GUIContent subsurfaceAttenuationText = EditorGUIUtility.TrTextContent("Subsurface Attenuation",
-                "次表面散射衰减控制.");
             public static GUIContent subsurfaceIntensityText = EditorGUIUtility.TrTextContent("Subsurface Intensity",
                 "次表面散射强度控制.");
             public static GUIContent transmissionText = EditorGUIUtility.TrTextContent("Transmission",
@@ -154,6 +152,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent useRefractText = EditorGUIUtility.TrTextContent("Use Refract",
                 "启用折射.");
             
+            public static GUIContent refractIntensityText = EditorGUIUtility.TrTextContent("Refract Intensity",
+                "折射强度控制");
             
         }
 
@@ -278,12 +278,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // _SubsurfaceScale("Subsurface Scale", Range(0, 3)) = 1
 
             public MaterialProperty subsurfaceColor;
-            public MaterialProperty thicknessMap;
-            public MaterialProperty subsurfaceAttenuation;
             public MaterialProperty subsurfaceIntensity;
+            public MaterialProperty thicknessMap;
             public MaterialProperty transmission;
             public MaterialProperty thicknessOffset;
             public MaterialProperty useRefract;
+            public MaterialProperty refractIntensity;
 
             /// <summary>
             /// Constructor for the <c>LitProperties</c> container struct.
@@ -311,11 +311,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 //Subsurface Input Porps
                 subsurfaceColor = BaseShaderGUI.FindProperty("_SubsurfaceColor", properties);
                 thicknessMap = BaseShaderGUI.FindProperty("_ThicknessMap", properties);
-                subsurfaceAttenuation = BaseShaderGUI.FindProperty("_SubsurfaceAttenuation", properties);
-                subsurfaceIntensity = BaseShaderGUI.FindProperty("_SubsurfaceIntensity", properties);
                 transmission = BaseShaderGUI.FindProperty("_Transmission", properties);
                 thicknessOffset = BaseShaderGUI.FindProperty("_ThicknessOffset", properties);
                 useRefract = BaseShaderGUI.FindProperty("_UseRefract", properties);
+                subsurfaceIntensity = BaseShaderGUI.FindProperty("_SubsurfaceIntensity", properties);
+                refractIntensity = BaseShaderGUI.FindProperty("_RefractIntensity", properties);
                 
                 // Advanced Props
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
@@ -422,9 +422,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             materialEditor.ShaderProperty(properties.thicknessOffset, Styles.thicknessOffsetText);
             materialEditor.ShaderProperty(properties.subsurfaceColor, Styles.subsurfaceColorText);
             materialEditor.ShaderProperty(properties.subsurfaceIntensity, Styles.subsurfaceIntensityText);
-            materialEditor.ShaderProperty(properties.subsurfaceAttenuation, Styles.subsurfaceAttenuationText);
+            materialEditor.ShaderProperty(properties.refractIntensity, Styles.refractIntensityText);
             materialEditor.ShaderProperty(properties.transmission, Styles.transmissionText);
-            
             EditorGUI.indentLevel -= 2;
         }
 

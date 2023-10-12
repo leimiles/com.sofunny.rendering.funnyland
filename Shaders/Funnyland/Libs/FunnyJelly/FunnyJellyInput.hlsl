@@ -1,5 +1,5 @@
-#ifndef FUNNY_SUBSURFACE_INPUT_INCLUDED
-#define FUNNY_SUBSURFACE_INPUT_INCLUDED
+#ifndef FUNNY_JELLY_INPUT_INCLUDED
+#define FUNNY_JELLY_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
@@ -16,11 +16,10 @@ CBUFFER_START(UnityPerMaterial)
     half _BumpScale;
 
     half4 _SubsurfaceColor;
-    half _SubsurfaceDistortion;
-    half _SubsurfaceAttenuation;
     half _SubsurfaceIntensity;
     half _ThicknessOffset;
     half _Transmission;
+    half _RefractIntensity;
 
     half4 _CameraOpaqueTexture_TexelSize;
 CBUFFER_END
@@ -36,11 +35,10 @@ CBUFFER_END
         UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
 
         UNITY_DOTS_INSTANCED_PROP(float4, _SubsurfaceColor)
-        UNITY_DOTS_INSTANCED_PROP(float, _SubsurfaceDistortion)
-        UNITY_DOTS_INSTANCED_PROP(float , _SubsurfaceAttenuation)
         UNITY_DOTS_INSTANCED_PROP(float , _SubsurfaceIntensity)
         UNITY_DOTS_INSTANCED_PROP(float , _ThicknessOffset)
         UNITY_DOTS_INSTANCED_PROP(float , _Transmission)
+        UNITY_DOTS_INSTANCED_PROP(float , _RefractIntensity)
     UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
     #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _BaseColor)
@@ -52,17 +50,18 @@ CBUFFER_END
     #define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _BumpScale)
 
     #define _SubsurfaceColor        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _SubsurfaceColor)
-    #define _SubsurfaceDistortion   UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceDistortion)
-    #define _SubsurfaceAttenuation  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceAttenuation)
     #define _SubsurfaceIntensity    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _SubsurfaceIntensity)
     #define _ThicknessOffset        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _ThicknessOffset)
     #define _Transmission           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _Transmission)
+    #define _RefractIntensity           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float  , _RefractIntensity)
 #endif
 
 TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
 TEXTURE2D(_ThicknessMap);   SAMPLER(sampler_ThicknessMap);
 
+#ifdef _FRP_HIGH_SHADER_QUALITY
 TEXTURE2D_X(_CameraOpaqueTexture); SAMPLER(sampler_CameraOpaqueTexture);
+#endif
 
 inline void InitializeSubsurfaceData(float2 uv, out FunnyJellySurfaceData outSurfaceData)
 {
@@ -92,11 +91,14 @@ inline void InitializeSubsurfaceData(float2 uv, out FunnyJellySurfaceData outSur
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
     
     outSurfaceData.thickness = saturate((1 - subsurfaceControlMap.r) + _ThicknessOffset);
-    outSurfaceData.distortion = _SubsurfaceDistortion;
     outSurfaceData.color = _SubsurfaceColor;
-    outSurfaceData.power = _SubsurfaceAttenuation;
-    outSurfaceData.intensity = _SubsurfaceIntensity;
+    outSurfaceData.subsurfaceIntensity = _SubsurfaceIntensity;
+    outSurfaceData.refractIntensity = _RefractIntensity;
+    #ifdef _FRP_HIGH_SHADER_QUALITY
     outSurfaceData.transmission = _Transmission;
+    #else
+    outSurfaceData.transmission = saturate(_Transmission - 0.3);
+    #endif
 }
 
 #endif

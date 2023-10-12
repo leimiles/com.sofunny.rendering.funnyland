@@ -27,10 +27,9 @@ Shader "SoFunny/Funnyland/FunnyJelly"
         //Subsurface
         _SubsurfaceColor("Subsurface Color", Color) = (1, 1, 1, 1)
         _ThicknessMap("Thickness Map", 2D) = "black"{}
-        [HideInInspector]_SubsurfaceDistortion("Subsurface Distortion", Range(0, 1)) = 0.5
-        _ThicknessOffset("Thickness Offset", Range(-1.0, 1)) = 0
-        _SubsurfaceAttenuation("Subsurface Attenuation", Range(1.0, 100)) = 5
-        _SubsurfaceIntensity("Subsurface Intensity", Range(0.0, 2.0)) = 1.0
+        _ThicknessOffset("Thickness Offset", Range(-1.0, 1.0)) = 0
+        _SubsurfaceIntensity("Subsurface Intensity", Range(0.0, 1.0)) = 0.5
+        _RefractIntensity("Refract Intensity", Range(0.0, 1.0)) = 0.3
         _Transmission("Transmission", Range(0,1)) = 0.3
         [HideInInspector][ToggleUI] _UseRefract ("Use Refract", Float) = 1.0
 
@@ -116,7 +115,7 @@ Shader "SoFunny/Funnyland/FunnyJelly"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _FORWARD_PLUS
-            #pragma multi_compile_fragment _ _FRP_REFRACT
+            #pragma multi_compile_fragment _ _FRP_HIGH_SHADER_QUALITY //去掉反射，SSS计算简化
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             // -------------------------------------
