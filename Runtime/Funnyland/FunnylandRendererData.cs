@@ -126,6 +126,8 @@ namespace SoFunny.Rendering.Funnyland {
         [SerializeField] string[] m_ShaderTagLightModes;
         string[] m_DefaultShaderTagLightModes = new []{"SRPDefaultUnlit", "FunnyLandMobileForward"};
 
+        [SerializeField] public GraphicQuality m_GraphicQuality;
+        
         public ShaderTagId[] shaderTagIds {
             get {
                 // if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
@@ -170,6 +172,14 @@ namespace SoFunny.Rendering.Funnyland {
 
         public VolumeStack GetVolumeStack() {
             return m_SharedStack;
+        }
+
+        public GraphicQuality graphicQuality {
+            get => m_GraphicQuality;
+            set {
+                SetDirty();
+                m_GraphicQuality = value;
+            }
         }
 
         public enum FrameLimit {
@@ -284,7 +294,6 @@ namespace SoFunny.Rendering.Funnyland {
 
         }
     }
-
     public enum PostProssType {
         /// <summary>
         /// 不开启PostPross
