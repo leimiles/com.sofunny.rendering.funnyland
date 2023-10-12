@@ -20,13 +20,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 060a82c49306e914b956fb6e3cf8ea69, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
-  m_RequireOpaqueTexture: 1
+  m_RequireOpaqueTexture: 0
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 0
   m_SupportsHDR: 0
   m_HDRColorBufferPrecision: 0
   m_MSAA: 1
-  m_RenderScale: 0.6666667
+  m_RenderScale: 1
   m_UpscalingFilter: 1
   m_FsrOverrideSharpness: 0
   m_FsrSharpness: 0.92
@@ -85,7 +85,7 @@ MonoBehaviour:
     bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}
   m_EnalbeSimpleRendering: 0
   m_EnablePost: 1
-  m_PrefilteringModeMainLightShadows: 4
+  m_PrefilteringModeMainLightShadows: 3
   m_PrefilteringModeAdditionalLight: 0
   m_PrefilteringModeAdditionalLightShadows: 0
   m_PrefilterXRKeywords: 1
