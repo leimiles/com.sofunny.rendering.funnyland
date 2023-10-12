@@ -109,7 +109,11 @@ namespace SoFunny.Rendering.Funnyland {
             m_HistogramComputerShader = data.shaderResources.histogramComputerShader;
 #endif
             m_UIBackgroundBlurMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.uiBackgroundBlurPS);
-
+            
+#if UNITY_EDITOR
+            ChangeGraphicQuality(data.graphicQuality);
+#endif
+            
             ChangeAssetSettings();
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
                 var settings = LightCookieManager.Settings.Create();
@@ -178,6 +182,10 @@ namespace SoFunny.Rendering.Funnyland {
             m_PostProssType = data.postProssType;
         }
 
+        // 只用于编辑器情况下调整图形质量 进入游戏则需要根据玩法进行调用
+        void ChangeGraphicQuality(GraphicQuality graphicQuality) {
+            FunnyGraphicQualitySettings.SetDefaultQualitySetting(graphicQuality);
+        }
         void ChangeAssetSettings() {
             if (UniversalRenderPipeline.asset != null) {
                 UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();

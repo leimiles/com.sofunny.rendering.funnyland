@@ -12,6 +12,7 @@ namespace SoFunny.Rendering.Funnyland {
     public class FunnylandMobileRendererDataEditor : ScriptableRendererDataEditor {
         private static class Styles {
             public static readonly GUIContent LightModes = EditorGUIUtility.TrTextContent("LightModes: ", "允许渲染的 shader tag light mode.");
+            public static readonly GUIContent GraphicQuality = EditorGUIUtility.TrTextContent("GraphicQuality: ", "画质分级");
             public static readonly GUIContent FrameLimit = EditorGUIUtility.TrTextContent("帧率锁定: ", "当前的帧率 ultra = 60, standard = 30.");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("镜头效果: ", "只能调色，别的不开");
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
@@ -22,6 +23,7 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent UIBlurRadius = EditorGUIUtility.TrTextContent("模糊半径: ", "模糊半径大小");
         }
         SerializedProperty m_LightModes;
+        SerializedProperty m_GraphicQuality;
         SerializedProperty m_FrameLimit;
         SerializedProperty m_SharedProfile;
         SerializedProperty m_PostProcessType;
@@ -31,7 +33,7 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_EnableUIBlur;
         SerializedProperty m_uiBlurMaxIterations;
         SerializedProperty m_uiBlurRadius;
-        
+
         bool isDebug = true;
         private FunnylandMobileRendererData _funnylandMobileRendererData;
 
@@ -39,6 +41,7 @@ namespace SoFunny.Rendering.Funnyland {
         private void OnEnable() {
             _funnylandMobileRendererData = target as FunnylandMobileRendererData;
             m_LightModes = serializedObject.FindProperty("m_ShaderTagLightModes");
+            m_GraphicQuality = serializedObject.FindProperty("m_GraphicQuality");
             m_FrameLimit = serializedObject.FindProperty("m_FrameLimit");
             m_SharedProfile = serializedObject.FindProperty("m_SharedProfile");
             m_PostProcessType = serializedObject.FindProperty("postProssType");
@@ -55,8 +58,10 @@ namespace SoFunny.Rendering.Funnyland {
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
-            EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
+            EditorGUILayout.PropertyField(m_GraphicQuality, Styles.GraphicQuality);
             
+            EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PostProcessType, Styles.PostProssType);
             if (EditorGUI.EndChangeCheck()) {

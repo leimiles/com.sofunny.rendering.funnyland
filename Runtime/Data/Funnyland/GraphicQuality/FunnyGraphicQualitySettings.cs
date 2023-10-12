@@ -10,8 +10,8 @@ using Debug = System.Diagnostics.Debug;
 namespace SoFunny.Rendering.Funnyland {
     public enum GraphicQuality {
         High,
-        Low,
-        Custom
+        Low
+        //Custom
     }
 
     public static class FunnyGraphicQualitySettings {
@@ -63,15 +63,12 @@ namespace SoFunny.Rendering.Funnyland {
         }
 
         #region shader表现设置
+        // 一般来说Shader Quality为Low得时候 会同时使用SimpleRender和Copy Color 需要注意此时不能进行_CameraDepthTexture或者_CameraOpaqueTexture得采样
         private static void ShadingQuality(ShaderQuality shaderQuality) {
-            SetReflectQuality(shaderQuality);
-        }
-
-        private static void SetReflectQuality(ShaderQuality shaderQuality) {
             if (shaderQuality == ShaderQuality.High) {
-                Shader.EnableKeyword("_FRP_REFRACT");
+                Shader.EnableKeyword("_FRP_HIGH_SHADER_QUALITY");
             } else {
-                Shader.DisableKeyword("_FRP_REFRACT");
+                Shader.DisableKeyword("_FRP_HIGH_SHADER_QUALITY");
             }
         }
 
