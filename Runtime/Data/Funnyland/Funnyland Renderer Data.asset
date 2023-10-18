@@ -43,6 +43,8 @@ MonoBehaviour:
     blurRadius: 0
   m_ShaderTagLightModes:
   - FunnylandMobileForward
+  - SRPDefaultUnlit
+  m_GraphicQuality: 0
   m_SharedProfile: {fileID: 11400000, guid: e838a479971283d4aa8d3bc6157783b3, type: 2}
   m_FrameLimit: 60
   m_OpaqueLayerMask:
