@@ -49,15 +49,19 @@ Shader "SoFunny/Funnyland/FunnyDecal"
 
             #pragma multi_compile_fog
 
-            #pragma target 4.5
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma target 2.0
+            #pragma multi_compile_instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+            
             #pragma shader_feature_local _UnityFogEnable
             #pragma shader_feature_local_fragment _SupportOrthographicCamera
+            
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct a2v
             {
                 float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
@@ -66,6 +70,8 @@ Shader "SoFunny/Funnyland/FunnyDecal"
                 float4 screenPos : TEXCOORD0;
                 float4 viewRayOS : TEXCOORD1; // xyz: viewRayOS, w: extra copy of positionVS.z
                 float4 cameraPosOSAndFogFactor : TEXCOORD2;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             sampler2D _BaseMap;
@@ -73,11 +79,20 @@ Shader "SoFunny/Funnyland/FunnyDecal"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
-                //float _ProjectionAngleDiscardThreshold;
                 half4 _Color;
                 half2 _AlphaRemap;
-                //half _MulAlphaToRGB;
             CBUFFER_END
+
+            #ifdef UNITY_DOTS_INSTANCING_ENABLED
+                UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+                    UNITY_DOTS_INSTANCED_PROP(float4, _Color)
+                    UNITY_DOTS_INSTANCED_PROP(float2, _AlphaRemap)
+                UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+
+                #define _Color              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4 , _Color)
+                #define _AlphaRemap          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float2 , _AlphaRemap)
+            #endif
+            
 
             float4 ComputeScreenPosition(float4 positionCS)
             {
@@ -89,7 +104,11 @@ Shader "SoFunny/Funnyland/FunnyDecal"
 
             v2f vert(a2v input)
             {
-                v2f o;
+                v2f o = (v2f)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                
                 VertexPositionInputs vertexPositionInput = GetVertexPositionInputs(input.positionOS);
 
                 o.positionCS = vertexPositionInput.positionCS;
@@ -119,7 +138,9 @@ Shader "SoFunny/Funnyland/FunnyDecal"
 
             half4 frag(v2f i) : SV_Target
             {
-
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                
                 i.viewRayOS.xyz /= i.viewRayOS.w;
 
                 float2 screenSpaceUV = i.screenPos.xy / i.screenPos.w;
