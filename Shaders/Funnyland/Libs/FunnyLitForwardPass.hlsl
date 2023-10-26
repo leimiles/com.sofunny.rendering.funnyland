@@ -24,9 +24,9 @@ struct Varyings
     float3 positionWS                  : TEXCOORD1;    // xyz: posWS
 
     #ifdef _NORMALMAP
-        half4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
-        half4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-        half4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+        half3 normalWS                 : TEXCOORD2;    // xyz: normal
+        half3 tangentWS                : TEXCOORD3;    // xyz: tangent
+        half3 bitangentWS              : TEXCOORD4;    // xyz: bitangent
     #else
         half3  normalWS                : TEXCOORD2;
     #endif
@@ -59,17 +59,15 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.positionWS = input.positionWS;
 
     #ifdef _NORMALMAP
-        half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
         inputData.tangentToWorld = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
     #else
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
         inputData.normalWS = input.normalWS;
     #endif
 
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    viewDirWS = SafeNormalize(viewDirWS);
-
+    
     inputData.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -136,10 +134,9 @@ Varyings LitPassVertexSimple(Attributes input)
     output.positionCS = vertexInput.positionCS;
 
 #ifdef _NORMALMAP
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-    output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
-    output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
-    output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
+    output.normalWS = normalInput.normalWS;
+    output.tangentWS = normalInput.tangentWS;
+    output.bitangentWS = normalInput.bitangentWS;
 #else
     output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
 #endif
