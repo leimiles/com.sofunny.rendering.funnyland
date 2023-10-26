@@ -110,9 +110,9 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
             m_UIBackgroundBlurMaterial = CoreUtils.CreateEngineMaterial(data.shaderResources.uiBackgroundBlurPS);
             
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
             ChangeGraphicQuality(data.graphicQuality);
-#endif
+// #endif
             
             ChangeAssetSettings();
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false) {
@@ -182,10 +182,11 @@ namespace SoFunny.Rendering.Funnyland {
             m_PostProssType = data.postProssType;
         }
 
-        // 只用于编辑器情况下调整图形质量 进入游戏则需要根据玩法进行调用
+        // 目前所有情况都使用该配置  但是 希望 只用于编辑器情况下调整图形质量 进入游戏则需要根据玩法进行调用
         void ChangeGraphicQuality(GraphicQuality graphicQuality) {
             FunnyGraphicQualitySettings.SetDefaultQualitySetting(graphicQuality);
         }
+        
         void ChangeAssetSettings() {
             if (UniversalRenderPipeline.asset != null) {
                 UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
