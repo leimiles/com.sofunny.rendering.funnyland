@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Terrain Lit material.
             /// </summary>
-            [Reload("Runtime/Materials/TerrainLit.mat")]
+            [Reload("Runtime/Materials/Funnyland/FunnyTerrainLit.mat")]
             public Material terrainLit;
 
             /// <summary>
