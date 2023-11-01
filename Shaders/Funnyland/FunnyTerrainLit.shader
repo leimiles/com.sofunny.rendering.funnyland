@@ -48,7 +48,7 @@ Shader "SoFunny/Funnyland/FunnyTerrainLit"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "False" "TerrainCompatible" = "True"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "False" "TerrainCompatible" = "True"}
 
         Pass
         {
