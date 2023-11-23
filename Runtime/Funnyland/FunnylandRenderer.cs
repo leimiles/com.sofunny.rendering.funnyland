@@ -512,6 +512,7 @@ namespace SoFunny.Rendering.Funnyland {
         internal override void ReleaseRenderTargets() {
             // 一次性释放多个 rthandle 资源
             m_ColorBufferSystem.Dispose();
+            m_PostProcessPasses.ReleaseRenderTargets();
             m_CameraDepthAttachment?.Release();
             m_MainLightShadowCasterPass?.Dispose();
             m_AdditionalLightsShadowCasterPass?.Dispose();
@@ -524,6 +525,8 @@ namespace SoFunny.Rendering.Funnyland {
         protected override void Dispose(bool disposing) {
             m_ForwardLights.Cleanup();
             m_FinalBlitPass?.Dispose();
+            m_PostProcessPasses.Dispose();
+
             ReleaseRenderTargets();
             base.Dispose(disposing);
             CoreUtils.Destroy(m_BlitMaterial);
