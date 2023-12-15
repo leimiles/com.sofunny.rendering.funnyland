@@ -255,8 +255,8 @@ namespace SoFunny.Rendering.Funnyland {
             bool isDebug = m_DebugPass.isCreated;
             if (isDebug) {
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
-                EnqueuePass(m_DebugPass.m_DebugOpaqueForwardPass);
-                EnqueuePass(m_DebugPass.m_DebugTransparentForwardPass);
+                EnqueuePass(m_DebugPass.DebugOpaqueForwardPass);
+                EnqueuePass(m_DebugPass.DebugTransparentForwardPass);
                 return;
             }
 #endif
