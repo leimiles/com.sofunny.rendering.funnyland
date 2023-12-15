@@ -80,11 +80,11 @@ namespace SoFunny.Rendering.Funnyland {
 #if UNITY_EDITOR
         Material m_HistogramMaterial = null;
         ComputeShader m_HistogramComputerShader = null;
+        FunnyDebugPasses m_DebugPass;
 #endif
 
         Material m_UIBackgroundBlurMaterial = null;
 
-        FunnyDebugPasses m_DebugPass;
         FunnyPostProcessPasses m_PostProcessPasses;
         internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
