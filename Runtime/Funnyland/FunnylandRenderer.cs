@@ -80,6 +80,7 @@ namespace SoFunny.Rendering.Funnyland {
 #if UNITY_EDITOR
         Material m_HistogramMaterial = null;
         ComputeShader m_HistogramComputerShader = null;
+        FunnyDebugPasses m_DebugPass;
 #endif
 
         Material m_UIBackgroundBlurMaterial = null;
@@ -180,6 +181,9 @@ namespace SoFunny.Rendering.Funnyland {
             }
             m_VolumeData = new PostVolumeData(data.GetVolumePrpfile(), data.GetVolumeStack());
             m_PostProssType = data.postProssType;
+#if UNITY_EDITOR
+            m_DebugPass = new FunnyDebugPasses(data.debugModeType, m_DefaultStencilState, stencilData);
+#endif
         }
 
         // 目前所有情况都使用该配置  但是 希望 只用于编辑器情况下调整图形质量 进入游戏则需要根据玩法进行调用
@@ -246,6 +250,17 @@ namespace SoFunny.Rendering.Funnyland {
 #else
             bool isGizmosEnabled = false;
 #endif
+            
+#if UNITY_EDITOR
+            bool isDebug = m_DebugPass.isCreated;
+            if (isDebug) {
+                ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
+                EnqueuePass(m_DebugPass.DebugOpaqueForwardPass);
+                EnqueuePass(m_DebugPass.DebugTransparentForwardPass);
+                return;
+            }
+#endif
+
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;

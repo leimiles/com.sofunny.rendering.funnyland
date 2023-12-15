@@ -18,6 +18,7 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
             public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体和开启遮挡描边");
             public static readonly GUIContent Histogram = EditorGUIUtility.TrTextContent("色彩直方图: ", "开启色彩直方图debug");
+            public static readonly GUIContent Debug = EditorGUIUtility.TrTextContent("DebugMode: ", "Debug模式进行某些特殊效果的Debug，仅在Editor情况下");
             public static readonly GUIContent EnableUIBgBlur = EditorGUIUtility.TrTextContent("开启UI背景模糊: ", "开启UI背景模糊效果");
             public static readonly GUIContent UIBlurMaxIterations = EditorGUIUtility.TrTextContent("模糊最大迭代次数: ", "迭代次数越大模糊程度越高");
             public static readonly GUIContent UIBlurRadius = EditorGUIUtility.TrTextContent("模糊半径: ", "模糊半径大小");
@@ -33,6 +34,7 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_EnableUIBlur;
         SerializedProperty m_uiBlurMaxIterations;
         SerializedProperty m_uiBlurRadius;
+        SerializedProperty m_DebugMode;
 
         bool isDebug = true;
         private FunnylandMobileRendererData _funnylandMobileRendererData;
@@ -46,6 +48,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_SharedProfile = serializedObject.FindProperty("m_SharedProfile");
             m_PostProcessType = serializedObject.FindProperty("postProssType");
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
+            m_DebugMode = serializedObject.FindProperty("debugModeType");
             m_OccluderStencilLayerMask = serializedObject.FindProperty("m_OccluderStencilLayerMask");
             m_Histogram = serializedObject.FindProperty("m_Histogram");
             m_EnableUIBlur = serializedObject.FindProperty("m_enableUIBlur");
@@ -82,6 +85,7 @@ namespace SoFunny.Rendering.Funnyland {
             isDebug = EditorGUILayout.Foldout(isDebug, "Debug");
             if (isDebug) {
                 EditorGUILayout.PropertyField(m_Histogram, Styles.Histogram);
+                EditorGUILayout.PropertyField(m_DebugMode, Styles.Debug);
             }
             //EditorGUILayout.PropertyField(m_SharedProfile, Styles.VolumeProfile);     // 自定义 profile 不开放
             serializedObject.ApplyModifiedProperties();
