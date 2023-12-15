@@ -110,6 +110,8 @@ namespace SoFunny.Rendering.Funnyland {
             [Reload("Shaders/Funnyland/DecalBox/DecalBox.mesh"), SerializeField]
             static internal Mesh decalBox;
         }
+    
+        [SerializeField] public DebugModeType debugModeType = DebugModeType.Off;
 
         [SerializeField] public PostProssType postProssType = PostProssType.BaseCamera;
         public PostProcessData postProcessData;
@@ -309,5 +311,17 @@ namespace SoFunny.Rendering.Funnyland {
         /// 相机堆栈的最后一个相机开启PostPross
         /// </summary>
         lastCamera,
+    }
+    
+    public enum DebugModeType {
+        /// <summary>
+        /// 不开启Debug模式
+        /// </summary>
+        Off,
+
+        /// <summary>
+        /// DebugHlod
+        /// </summary>
+        HlodDebug,
     }
 }

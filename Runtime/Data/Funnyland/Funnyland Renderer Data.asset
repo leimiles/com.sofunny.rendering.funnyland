@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Funnyland Renderer Data
   m_EditorClassIdentifier: 
   debugShaders:
-    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
-      type: 3}
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures: []
   m_RendererFeatureMap: 
@@ -22,15 +21,13 @@ MonoBehaviour:
   shaderResources:
     copyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
     coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
-    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b,
-      type: 3}
+    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b, type: 3}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
     funnyEffectsPS: {fileID: 4800000, guid: c0ec6ab06ecda7b44916c18aa14ae49f, type: 3}
     histogramPS: {fileID: 4800000, guid: e380de9a492e6334d861fc36b16b1b9e, type: 3}
-    histogramComputerShader: {fileID: 7200000, guid: d04d5f8a43d7dc54a8f003de80e24569,
-      type: 3}
-    uiBackgroundBlurPS: {fileID: 4800000, guid: 46d7feca472443faaf82caabaee6d6a2,
-      type: 3}
+    histogramComputerShader: {fileID: 7200000, guid: d04d5f8a43d7dc54a8f003de80e24569, type: 3}
+    uiBackgroundBlurPS: {fileID: 4800000, guid: 46d7feca472443faaf82caabaee6d6a2, type: 3}
+  debugModeType: 0
   postProssType: 1
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_OccluderStencilLayerMask:
