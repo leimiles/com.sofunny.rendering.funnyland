@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace SoFunny.Rendering.Funnyland {
+#if UNITY_EDITOR
     // 为后续多debug准备 暂时DebugPass只有一个Debug所以并没有使用keyward
     class DebugKeyward {
         public const string Hlod = "_Debug_Hlod";
@@ -47,4 +48,5 @@ namespace SoFunny.Rendering.Funnyland {
             }
         }
     }
+#endif
 }
