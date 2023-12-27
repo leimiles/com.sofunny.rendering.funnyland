@@ -380,6 +380,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
             
             #region  copyColor pass
+            copyColorPass = false;
             if (copyColorPass)
             {
                 // TODO: Downsampling method should be stored in the renderer instead of in the asset.
@@ -397,6 +398,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
 
             #region  copyDepth pass
+            requiresDepthCopyPass = false;
             if (requiresDepthCopyPass) {
                 // 分配 m_DepthTexture 内存
                 var depthDescriptor = cameraTargetDescriptor;

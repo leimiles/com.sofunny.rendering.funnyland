@@ -128,7 +128,7 @@ namespace SoFunny.Rendering.Funnyland {
         [SerializeField] string[] m_ShaderTagLightModes;
         string[] m_DefaultShaderTagLightModes = new []{"SRPDefaultUnlit", "FunnyLandMobileForward"};
 
-        [SerializeField] private GraphicQuality m_GraphicQuality = GraphicQuality.Low;
+        [SerializeField] private GraphicQuality m_GraphicQuality = GraphicQuality.High;
         
         public ShaderTagId[] shaderTagIds {
             get {
