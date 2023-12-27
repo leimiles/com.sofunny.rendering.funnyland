@@ -7,6 +7,7 @@
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
+    float4 _ObjectPosition;
     half4 _BaseColor;
     half4 _EmissionColor;
     half _Cutoff;
@@ -14,6 +15,8 @@ CBUFFER_START(UnityPerMaterial)
     half _MetallicOffset;
     half _RoughnessOffset;
     half _BumpScale;
+    half _MinDitherDistance;
+    half _MaxDitherDistance;
 CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED

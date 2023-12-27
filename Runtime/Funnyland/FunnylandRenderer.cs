@@ -96,7 +96,8 @@ namespace SoFunny.Rendering.Funnyland {
         HistogramChannel m_Histogram;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
-            ProjectSettingMobile();
+            // 临时关闭项目设置
+            // ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
 
@@ -245,11 +246,11 @@ namespace SoFunny.Rendering.Funnyland {
 
 
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
-#if UNITY_EDITOR
-            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#else
-            bool isGizmosEnabled = false;
-#endif
+// #if UNITY_EDITOR
+//             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+// #else
+//             bool isGizmosEnabled = false;
+// #endif
             
 #if UNITY_EDITOR
             bool isDebug = m_DebugPass.isCreated;
@@ -379,6 +380,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
             
             #region  copyColor pass
+            copyColorPass = false;
             if (copyColorPass)
             {
                 // TODO: Downsampling method should be stored in the renderer instead of in the asset.
@@ -396,6 +398,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
 
             #region  copyDepth pass
+            requiresDepthCopyPass = false;
             if (requiresDepthCopyPass) {
                 // 分配 m_DepthTexture 内存
                 var depthDescriptor = cameraTargetDescriptor;

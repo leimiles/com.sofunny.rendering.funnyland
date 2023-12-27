@@ -47,9 +47,9 @@ Shader "Hidden/SoFunny/Funnyland/PostProcessing/Histogram"
 
             #ifdef _HISTOGRAM_RGB
             UNITY_UNROLL
-            for (uint i = 0; i < RGBHISTOGRAM_BINS; i++)
+            for (uint j = 0; j < RGBHISTOGRAM_BINS; j++)
             {
-                uint h = _HistogramBuffer[i];
+                uint h = _HistogramBuffer[j];
                 maxValue = max(maxValue, h);
             }
         
@@ -57,9 +57,9 @@ Shader "Hidden/SoFunny/Funnyland/PostProcessing/Histogram"
             #endif
 
             UNITY_UNROLL
-            for (uint i = 0; i < HISTOGRAM_BINS; i++)
+            for (uint w = 0; w < HISTOGRAM_BINS; w++)
             {
-                uint h = _HistogramBuffer[i];
+                uint h = _HistogramBuffer[w];
                 maxValue = max(maxValue, h);
             }
         
