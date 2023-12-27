@@ -246,11 +246,11 @@ namespace SoFunny.Rendering.Funnyland {
 
 
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
-#if UNITY_EDITOR
-            bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-#else
-            bool isGizmosEnabled = false;
-#endif
+// #if UNITY_EDITOR
+//             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+// #else
+//             bool isGizmosEnabled = false;
+// #endif
             
 #if UNITY_EDITOR
             bool isDebug = m_DebugPass.isCreated;

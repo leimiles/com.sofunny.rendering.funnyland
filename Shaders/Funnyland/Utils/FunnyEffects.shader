@@ -274,7 +274,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 half diff = saturate(1.0 - Sobel(i));
-                half3 color = _OutlineColor * diff;
+                half3 color = _OutlineColor.rgb * diff;
                 return half4(color, diff);
             }
             ENDHLSL
