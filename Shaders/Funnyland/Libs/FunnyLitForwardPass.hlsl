@@ -6,48 +6,56 @@
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
 
+#if defined(_DITHER_FADING_ON)
+    #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyDitherFading.hlsl"
+#endif
+
 struct Attributes
 {
-    float4 positionOS    : POSITION;
-    float3 normalOS      : NORMAL;
-    float4 tangentOS     : TANGENT;
-    float2 texcoord      : TEXCOORD0;
-    float2 staticLightmapUV    : TEXCOORD1;
-    float2 dynamicLightmapUV    : TEXCOORD2;
+    float4 positionOS : POSITION;
+    float3 normalOS : NORMAL;
+    float4 tangentOS : TANGENT;
+    float2 texcoord : TEXCOORD0;
+    float2 staticLightmapUV : TEXCOORD1;
+    float2 dynamicLightmapUV : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
-    float2 uv                       : TEXCOORD0;
+    float2 uv : TEXCOORD0;
 
-    float3 positionWS                  : TEXCOORD1;    // xyz: posWS
+    float3 positionWS : TEXCOORD1;    // xyz: posWS
 
     #ifdef _NORMALMAP
-        half3 normalWS                 : TEXCOORD2;    // xyz: normal
-        half3 tangentWS                : TEXCOORD3;    // xyz: tangent
-        half3 bitangentWS              : TEXCOORD4;    // xyz: bitangent
+        half3 normalWS : TEXCOORD2;    // xyz: normal
+        half3 tangentWS : TEXCOORD3;    // xyz: tangent
+        half3 bitangentWS : TEXCOORD4;    // xyz: bitangent
     #else
-        half3  normalWS                : TEXCOORD2;
+        half3 normalWS : TEXCOORD2;
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        half4 fogFactorAndVertexLight  : TEXCOORD5; // x: fogFactor, yzw: vertex light
+        half4 fogFactorAndVertexLight : TEXCOORD5; // x: fogFactor, yzw: vertex light
     #else
-        half  fogFactor                 : TEXCOORD5;
+        half fogFactor : TEXCOORD5;
     #endif
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        float4 shadowCoord             : TEXCOORD6;
+        float4 shadowCoord : TEXCOORD6;
     #endif
 
     DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
 
-#ifdef DYNAMICLIGHTMAP_ON
-    float2  dynamicLightmapUV : TEXCOORD8; // Dynamic lightmap UVs
-#endif
+    #ifdef DYNAMICLIGHTMAP_ON
+        float2 dynamicLightmapUV : TEXCOORD8; // Dynamic lightmap UVs
+    #endif
 
-    float4 positionCS                  : SV_POSITION;
+    #ifdef _DITHER_FADING_ON
+        float4 positionSS : TEXCOORD10;
+    #endif
+
+    float4 positionCS : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -86,24 +94,24 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
-#else
-    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
-#endif
+    #if defined(DYNAMICLIGHTMAP_ON)
+        inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
+    #else
+        inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
+    #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
     #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
-    #endif
-    #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
-    inputData.vertexSH = input.vertexSH;
-    #endif
+        #if defined(DYNAMICLIGHTMAP_ON)
+            inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+        #endif
+        #if defined(LIGHTMAP_ON)
+            inputData.staticLightmapUV = input.staticLightmapUV;
+        #else
+            inputData.vertexSH = input.vertexSH;
+        #endif
     #endif
 }
 
@@ -123,28 +131,28 @@ Varyings LitPassVertexSimple(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-#if defined(_FOG_FRAGMENT)
+    #if defined(_FOG_FRAGMENT)
         half fogFactor = 0;
-#else
+    #else
         half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-#endif
+    #endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
-#ifdef _NORMALMAP
-    output.normalWS = normalInput.normalWS;
-    output.tangentWS = normalInput.tangentWS;
-    output.bitangentWS = normalInput.bitangentWS;
-#else
-    output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
-#endif
+    #ifdef _NORMALMAP
+        output.normalWS = normalInput.normalWS;
+        output.tangentWS = normalInput.tangentWS;
+        output.bitangentWS = normalInput.bitangentWS;
+    #else
+        output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+    #endif
 
     OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-#ifdef DYNAMICLIGHTMAP_ON
-    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-#endif
+    #ifdef DYNAMICLIGHTMAP_ON
+        output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    #endif
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
@@ -158,6 +166,11 @@ Varyings LitPassVertexSimple(Attributes input)
         output.shadowCoord = GetShadowCoord(vertexInput);
     #endif
 
+    // screen position
+    #ifdef _DITHER_FADING_ON
+        output.positionSS = ComputeScreenPos(output.positionCS);
+    #endif
+
     return output;
 }
 
@@ -165,9 +178,9 @@ Varyings LitPassVertexSimple(Attributes input)
 void LitPassFragmentSimple(
     Varyings input
     , out half4 outColor : SV_Target0
-#ifdef _WRITE_RENDERING_LAYERS
-    , out float4 outRenderingLayers : SV_Target1
-#endif
+    #ifdef _WRITE_RENDERING_LAYERS
+        , out float4 outRenderingLayers : SV_Target1
+    #endif
 )
 {
     UNITY_SETUP_INSTANCE_ID(input);
@@ -176,17 +189,25 @@ void LitPassFragmentSimple(
     FunnySurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
-#ifdef LOD_FADE_CROSSFADE
-    LODFadeCrossFade(input.positionCS);
-#endif
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.positionCS);
+    #endif
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
-#ifdef _DBUFFER
-    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
-#endif
+    #ifdef _DBUFFER
+        ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+    #endif
+
+    // camera dither fading
+    #if _DITHER_FADING_ON
+        float4 distanceDither = distance(_WorldSpaceCameraPos.xyz, _ObjectPosition.xyz);
+        distanceDither = 1 - Remap(distanceDither, half2(_MaxDitherDistance, _MinDitherDistance), half2(0, 1));
+        half dither = DitherMatrix(distanceDither, input.positionSS).r;
+        clip(dither);
+    #endif
 
     half4 color = FunnyFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
@@ -194,10 +215,10 @@ void LitPassFragmentSimple(
 
     outColor = color;
 
-#ifdef _WRITE_RENDERING_LAYERS
-    uint renderingLayers = GetMeshRenderingLayer();
-    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
-#endif
+    #ifdef _WRITE_RENDERING_LAYERS
+        uint renderingLayers = GetMeshRenderingLayer();
+        outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+    #endif
 }
 
 #endif
