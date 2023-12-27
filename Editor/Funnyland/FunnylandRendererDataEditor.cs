@@ -89,7 +89,8 @@ namespace SoFunny.Rendering.Funnyland {
             }
             //EditorGUILayout.PropertyField(m_SharedProfile, Styles.VolumeProfile);     // 自定义 profile 不开放
             serializedObject.ApplyModifiedProperties();
-            
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
+
             CheckNullData();
         }
 
@@ -102,5 +103,6 @@ namespace SoFunny.Rendering.Funnyland {
                 ResourceReloader.TryReloadAllNullIn(_funnylandMobileRendererData, UniversalRenderPipelineAsset.packagePath);
             }
         }
+        
     }
 }
