@@ -96,7 +96,8 @@ namespace SoFunny.Rendering.Funnyland {
         HistogramChannel m_Histogram;
         public FunnylandMobileRenderer(FunnylandMobileRendererData data) : base(data) {
             Application.targetFrameRate = data.frameLimit;
-            ProjectSettingMobile();
+            // 临时关闭项目设置
+            // ProjectSettingMobile();
             StencilStateData stencilData = data.defaultStencilState;
             SetDefaultStencilState(stencilData);
 
