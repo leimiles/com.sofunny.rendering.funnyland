@@ -1,7 +1,7 @@
 #ifndef FUNNYDITHERFADING_HLSL_INCLUDED
 #define FUNNYDITHERFADING_HLSL_INCLUDED
 
-float4 DitherMatrix(float4 input, float4 positionSS)
+float DitherMatrix(float4 input, float4 positionSS)
 {
     float2 uv = positionSS.xy / positionSS.w * _ScreenParams.xy;
     float DITHER_THRESHOLDS[16] = {
@@ -11,7 +11,7 @@ float4 DitherMatrix(float4 input, float4 positionSS)
         16.0 / 17.0, 8.0 / 17.0, 14.0 / 17.0, 6.0 / 17.0
     };
     uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
-    float4 output = input - DITHER_THRESHOLDS[index];
+    float output = input - DITHER_THRESHOLDS[index];
     return output;
 }
 

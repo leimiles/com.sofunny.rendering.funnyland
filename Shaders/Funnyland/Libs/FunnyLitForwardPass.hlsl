@@ -205,7 +205,7 @@ void LitPassFragmentSimple(
     #if _DITHER_FADING_ON
         float distanceDither = distance(_WorldSpaceCameraPos.xyz, _ObjectPosition.xyz);
         distanceDither = Remap(distanceDither, _MinDitherDistance, _MaxDitherDistance, 0, 1);
-        half dither = DitherMatrix(distanceDither, input.positionSS).r;
+        float dither = DitherMatrix(distanceDither, input.positionSS).r;
         
         clip(dither);
     #endif
