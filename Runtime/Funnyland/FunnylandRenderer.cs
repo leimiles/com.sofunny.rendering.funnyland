@@ -255,7 +255,10 @@ namespace SoFunny.Rendering.Funnyland {
 #if UNITY_EDITOR
             bool isDebug = m_DebugPass.isCreated;
             if (isDebug) {
+                context.SetupCameraProperties(camera);
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
+                cmd.ClearRenderTarget(true, true, Color.clear);
+                
                 EnqueuePass(m_DebugPass.DebugOpaqueForwardPass);
                 EnqueuePass(m_DebugPass.DebugTransparentForwardPass);
                 return;
