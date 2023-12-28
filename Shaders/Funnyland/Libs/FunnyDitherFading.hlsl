@@ -1,7 +1,7 @@
 #ifndef FUNNYDITHERFADING_HLSL_INCLUDED
 #define FUNNYDITHERFADING_HLSL_INCLUDED
 
-float DitherMatrix(float4 input, float4 positionSS)
+float DitherMatrix(float input, float4 positionSS)
 {
     const float DITHER_THRESHOLDS[16] = {
         0.05882352, 0.52941176, 0.17647059, 0.64705882,
