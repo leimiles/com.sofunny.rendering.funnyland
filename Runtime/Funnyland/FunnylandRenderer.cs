@@ -195,7 +195,7 @@ namespace SoFunny.Rendering.Funnyland {
         void ChangeAssetSettings() {
             if (UniversalRenderPipeline.asset != null) {
                 // 临时取消
-                // UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
+                UniversalRenderPipeline.asset.renderScale = 1.0f;
                 UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
 // #if UNITY_EDITOR
 //                 UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
