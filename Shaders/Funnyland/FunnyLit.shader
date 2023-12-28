@@ -57,6 +57,11 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector][NoScaleOffset]unity_Lightmaps ("unity_Lightmaps", 2DArray) = "" { }
         [HideInInspector][NoScaleOffset]unity_LightmapsInd ("unity_LightmapsInd", 2DArray) = "" { }
         [HideInInspector][NoScaleOffset]unity_ShadowMasks ("unity_ShadowMasks", 2DArray) = "" { }
+
+        // camera dither fading
+        [HideInInspector] _MinDitherDistance ("MinDitherDistance", Float) = 0.5
+        [HideInInspector] _MaxDitherDistance ("MaxDitherDistance", Float) = 4
+        [HideInInspector] _ObjectPosition ("ObjectPosition", Vector) = (0, 0, 0, 0)
     }
 
     SubShader
@@ -110,7 +115,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _FORWARD_PLUS
-            #pragma multi_compile_fragment _ _DITHER_FADING_ON
+            #pragma multi_compile _ _DITHER_FADING_ON
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
