@@ -52,7 +52,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
             
             public static GUIContent zWriteText = EditorGUIUtility.TrTextContent("Force ZWrite","是否强制开启深度写入");
-
+            public static GUIContent ditherText = EditorGUIUtility.TrTextContent("Dither Shader","是否开启DitherShader");
+            
             /// <summary>
             /// The text and tooltip for the specular Map GUI.
             /// </summary>
@@ -155,7 +156,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// 深度写入参数控制
             /// </summary>
             public MaterialProperty zWrite;
-
+            
+            /// <summary>
+            /// Dither Shader
+            /// </summary>
+            public MaterialProperty dither;
+            
             // Surface Input Props
 
             /// <summary>
@@ -250,6 +256,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             /// The MaterialProperty for clear coat smoothness.
             /// </summary>
             public MaterialProperty clearCoatSmoothness;
+            
 
             /// <summary>
             /// Constructor for the <c>LitProperties</c> container struct.
@@ -260,6 +267,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Surface Option Props
                 workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
                 zWrite = BaseShaderGUI.FindProperty("_ZWrite", properties, false);
+                dither = BaseShaderGUI.FindProperty("_Dither", properties, false);
+
                 // Surface Input Props
                 metallic = BaseShaderGUI.FindProperty("_MetallicOffset", properties);
                 specColor = BaseShaderGUI.FindProperty("_SpecColor", properties, false);

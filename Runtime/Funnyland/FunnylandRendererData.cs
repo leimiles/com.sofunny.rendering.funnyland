@@ -132,26 +132,24 @@ namespace SoFunny.Rendering.Funnyland {
         
         public ShaderTagId[] shaderTagIds {
             get {
-                // if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
-                //     ShaderTagId[] shaderTagIds = new ShaderTagId[m_ShaderTagLightModes.Length];
-                //     for (int i = 0; i < shaderTagIds.Length; ++i) {
-                //         shaderTagIds[i] = new ShaderTagId(m_ShaderTagLightModes[i]);
-                //     }
-                //     return shaderTagIds;
-                // } else {
-                //     ShaderTagId[] shaderTagIds = { new ShaderTagId("FunnyLandMobileForward") };
-                //     return shaderTagIds;
-                // }
-                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length + m_DefaultShaderTagLightModes.Length];
-                for (int i = 0; i < shaderTags.Length; ++i) {
-                    shaderTagIds[i +  m_DefaultShaderTagLightModes.Length] = new ShaderTagId(shaderTags[i]);
+                if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
+                    ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length + m_DefaultShaderTagLightModes.Length];
+                    for (int i = 0; i < shaderTags.Length; ++i) {
+                        shaderTagIds[i +  m_DefaultShaderTagLightModes.Length] = new ShaderTagId(shaderTags[i]);
+                    }
+                    
+                    // 加入默认LightMode
+                    for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
+                        shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
+                    }
+                    return shaderTagIds;
+                } else {
+                    ShaderTagId[] shaderTagIds = new ShaderTagId[m_DefaultShaderTagLightModes.Length];
+                    for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
+                        shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
+                    }
+                    return shaderTagIds;
                 }
-                
-                // 加入默认LightMode
-                for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
-                    shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
-                }
-                return shaderTagIds;
             }
         }
 

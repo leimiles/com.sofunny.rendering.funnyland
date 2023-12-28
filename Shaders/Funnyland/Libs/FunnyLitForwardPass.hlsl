@@ -25,12 +25,12 @@ struct Varyings
 {
     float2 uv : TEXCOORD0;
 
-    float3 positionWS : TEXCOORD1;    // xyz: posWS
+    float3 positionWS : TEXCOORD1; // xyz: posWS
 
     #ifdef _NORMALMAP
-        half3 normalWS : TEXCOORD2;    // xyz: normal
-        half3 tangentWS : TEXCOORD3;    // xyz: tangent
-        half3 bitangentWS : TEXCOORD4;    // xyz: bitangent
+        half3 normalWS : TEXCOORD2; // xyz: normal
+        half3 tangentWS : TEXCOORD3; // xyz: tangent
+        half3 bitangentWS : TEXCOORD4; // xyz: bitangent
     #else
         half3 normalWS : TEXCOORD2;
     #endif
@@ -75,7 +75,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    
+
     inputData.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -203,9 +203,10 @@ void LitPassFragmentSimple(
 
     // camera dither fading
     #if _DITHER_FADING_ON
-        float4 distanceDither = distance(_WorldSpaceCameraPos.xyz, _ObjectPosition.xyz);
-        distanceDither = 1 - Remap(distanceDither, half2(_MaxDitherDistance, _MinDitherDistance), half2(0, 1));
-        half dither = DitherMatrix(distanceDither, input.positionSS).r;
+        float distanceDither = distance(_WorldSpaceCameraPos.xyz, _ObjectPosition.xyz);
+        distanceDither = Remap(distanceDither, _MinDitherDistance, _MaxDitherDistance, 0, 1);
+        float dither = DitherMatrix(distanceDither, input.positionSS).r;
+        
         clip(dither);
     #endif
 
@@ -213,6 +214,7 @@ void LitPassFragmentSimple(
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, IsSurfaceTypeTransparent(_Surface));
 
+    //outColor = outColor;
     outColor = color;
 
     #ifdef _WRITE_RENDERING_LAYERS
