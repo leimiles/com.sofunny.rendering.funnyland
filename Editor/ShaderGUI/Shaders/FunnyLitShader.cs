@@ -124,6 +124,12 @@ namespace SoFunny.Rendering.Funnyland
                 }
             }
 
+            DrawFloatToggleProperty(FunnyLitGUI.Styles.ditherText, litProperties.dither);
+            
+            if (material.HasProperty("_Dither")) {
+                CoreUtils.SetKeyword(material, "_DITHER_FADING_ON", 
+                    material.GetFloat("_Dither") == 1.0f);
+            }
             
             DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
 
