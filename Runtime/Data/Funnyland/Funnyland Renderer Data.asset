@@ -41,7 +41,7 @@ MonoBehaviour:
   m_enableUIBlur: 0
   m_uiBlurSettings:
     maxIterations: 2
-    blurRadius: 0
+    blurRadius: 1
   m_ShaderTagLightModes: []
   m_GraphicQuality: 0
   m_SharedProfile: {fileID: 11400000, guid: e838a479971283d4aa8d3bc6157783b3, type: 2}
