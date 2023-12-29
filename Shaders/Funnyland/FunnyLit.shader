@@ -8,21 +8,21 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [MainTexture] _BaseMap ("Base Map", 2D) = "white" { }
 
         [HideInInspector]_Cutoff ("Alpha Clipping", Range(0.0, 1.0)) = 0.5
-        
+
         [HideInInspector]_SpecGlossMap ("Specular Map", 2D) = "white" { }
-        
-        _MixMap("MixMap(R:Metallic G:AO B:Roughness)", 2D) = "white" {}
+
+        _MixMap ("MixMap(R:Metallic G:AO B:Roughness)", 2D) = "white" { }
         [HideInInspector]_SpecColor ("Specular Color", Color) = (1, 1, 1, 1)
         _RoughnessOffset ("Roughness Offset", Range(-1.0, 1.0)) = -0.5
-        _MetallicOffset("Metallic Offset", Range(-1.0, 1.0)) = -1.0
-        [HideInInspector]_MetallicGlossMap("Metallic", 2D) = "white" {}
-        
+        _MetallicOffset ("Metallic Offset", Range(-1.0, 1.0)) = -1.0
+        [HideInInspector]_MetallicGlossMap ("Metallic", 2D) = "white" { }
+
         [HideInInspector]_SmoothnessSource ("Smoothness Source", Float) = 0.0
         [HideInInspector]_SpecularHighlights ("Specular Highlights", Float) = 1.0
-        
+
         [NoScaleOffset] _BumpMap ("Normal Map", 2D) = "bump" { }
         _BumpScale ("Normal Scale", Range(0.0, 2.0)) = 1.0
-        
+
         [HideInInspector][HDR] _EmissionColor ("Emission Color", Color) = (0, 0, 0)
         [HideInInspector][NoScaleOffset]_EmissionMap ("Emission Map", 2D) = "white" { }
 
@@ -37,12 +37,12 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector] _DstBlendAlpha ("__dstA", Float) = 0.0
         [HideInInspector] _ZWriteControl ("___zwriteControl", Float) = 0.0
         [HideInInspector][ToggleUI] _ZWrite ("__zw", Float) = 1.0
-        
+
         [HideInInspector] _BlendModePreserveSpecular ("_BlendModePreserveSpecular", Float) = 1.0
         [HideInInspector] _AlphaToMask ("__alphaToMask", Float) = 0.0
 
         [HideInInspector][ToggleUI] _Dither ("__dither", Float) = 0.0
-        
+
         [HideInInspector][ToggleUI] _ReceiveShadows ("Receive Shadows", Float) = 1.0
         // Editmode props
         [HideInInspector]_QueueOffset ("Queue offset", Float) = 0.0
@@ -104,17 +104,17 @@ Shader "SoFunny/Funnyland/FunnyLit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
-            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            // #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            // #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
+            // #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            // #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
-            #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _LIGHT_COOKIES
-            #pragma multi_compile _ _FORWARD_PLUS
+            // #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            // #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
+            // #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            // #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _FORWARD_PLUS
             #pragma multi_compile _ _DITHER_FADING_ON
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
@@ -123,15 +123,15 @@ Shader "SoFunny/Funnyland/FunnyLit"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            // #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
-            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            // #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
+            // #pragma instancing_options renderinglayer
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
             //--------------------------------------
@@ -145,7 +145,7 @@ Shader "SoFunny/Funnyland/FunnyLit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitForwardPass.hlsl"
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "ShadowCaster"
@@ -409,5 +409,4 @@ Shader "SoFunny/Funnyland/FunnyLit"
 
     Fallback  "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "SoFunny.Rendering.Funnyland.FunnyLitShader"
-
 }
