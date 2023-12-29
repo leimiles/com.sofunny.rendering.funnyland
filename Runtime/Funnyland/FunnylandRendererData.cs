@@ -5,6 +5,7 @@ using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 using System.IO;
 #endif
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -123,7 +124,7 @@ namespace SoFunny.Rendering.Funnyland {
 
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
         [SerializeField] private bool m_enableUIBlur = false;
-        [SerializeField] private UIBlurSettings m_uiBlurSettings = new UIBlurSettings(){ maxIterations = 2, blurRadius = 0};
+        [SerializeField] private UIBlurSettings m_uiBlurSettings = new UIBlurSettings(){ maxIterations = 2, blurRadius = 1};
         
         [SerializeField] string[] m_ShaderTagLightModes;
         string[] m_DefaultShaderTagLightModes = new []{"SRPDefaultUnlit", "FunnyLandMobileForward"};
@@ -132,34 +133,27 @@ namespace SoFunny.Rendering.Funnyland {
         
         public ShaderTagId[] shaderTagIds {
             get {
-                if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
-                    ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length + m_DefaultShaderTagLightModes.Length];
-                    for (int i = 0; i < shaderTags.Length; ++i) {
-                        shaderTagIds[i +  m_DefaultShaderTagLightModes.Length] = new ShaderTagId(shaderTags[i]);
-                    }
-                    
-                    // 加入默认LightMode
-                    for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
-                        shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
-                    }
-                    return shaderTagIds;
-                } else {
-                    ShaderTagId[] shaderTagIds = new ShaderTagId[m_DefaultShaderTagLightModes.Length];
-                    for (int k = 0; k < m_DefaultShaderTagLightModes.Length; k++) {
-                        shaderTagIds[k] = new ShaderTagId(m_DefaultShaderTagLightModes[k]);
-                    }
-                    return shaderTagIds;
+                ShaderTagId[] shaderTagIds = new ShaderTagId[shaderTags.Length];
+                for (int i = 0; i < shaderTags.Length; ++i) {
+                    shaderTagIds[i] = new ShaderTagId(shaderTags[i]);
                 }
+
+                return shaderTagIds;
             }
         }
 
         public string[] shaderTags {
             get {
-                if (m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0) {
-                    return m_ShaderTagLightModes;
-                } else {
-                    return m_DefaultShaderTagLightModes;
+                List<string> shaderTagLightModes = new List<string>();
+
+                foreach (var defaultShaderTagLightMode in m_DefaultShaderTagLightModes) {
+                    shaderTagLightModes.Add(defaultShaderTagLightMode);
                 }
+                foreach (var shaderTagLightMode in m_ShaderTagLightModes) {
+                    shaderTagLightModes.Add(shaderTagLightMode);
+                }
+
+                return shaderTagLightModes.ToArray();
             }
         }
 
