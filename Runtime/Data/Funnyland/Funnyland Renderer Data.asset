@@ -16,9 +16,8 @@ MonoBehaviour:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
       type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
-  m_RendererFeatures:
-  - {fileID: 4115227359539706929}
-  m_RendererFeatureMap: 313c55e77a391c39
+  m_RendererFeatures: []
+  m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
   shaderResources:
     copyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
@@ -60,16 +59,3 @@ MonoBehaviour:
     passOperation: 2
     failOperation: 0
     zFailOperation: 0
---- !u!114 &4115227359539706929
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7abef8ff0ae49124dad2a5ff0a0c1c9b, type: 3}
-  m_Name: DebugDrawRenderFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
