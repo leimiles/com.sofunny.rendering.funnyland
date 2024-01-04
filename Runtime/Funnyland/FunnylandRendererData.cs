@@ -158,9 +158,11 @@ namespace SoFunny.Rendering.Funnyland {
                 foreach (var defaultShaderTagLightMode in m_DefaultShaderTagLightModes) {
                     shaderTagLightModes.Add(defaultShaderTagLightMode);
                 }
-                if(m_ShaderTagLightModes != null && m_ShaderTagLightModes.Length > 0){
-                    foreach (var shaderTagLightMode in m_ShaderTagLightModes) {
-                        shaderTagLightModes.Add(shaderTagLightMode);
+                if(m_ShaderTagLightModes != null){
+                    if (m_ShaderTagLightModes.Length > 0) {
+                        foreach (var shaderTagLightMode in m_ShaderTagLightModes) {
+                            shaderTagLightModes.Add(shaderTagLightMode);
+                        }
                     }
                 }
 
