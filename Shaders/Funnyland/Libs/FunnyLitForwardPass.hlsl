@@ -6,10 +6,6 @@
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif
 
-#if defined(_DITHER_FADING_ON)
-    #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyDitherFading.hlsl"
-#endif
-
 struct Attributes
 {
     float4 positionOS : POSITION;
@@ -205,9 +201,8 @@ void LitPassFragmentSimple(
     #if _DITHER_FADING_ON
         float distanceDither = distance(_WorldSpaceCameraPos.xyz, _ObjectPosition.xyz);
         distanceDither = Remap(distanceDither, _MinDitherDistance, _MaxDitherDistance, 0, 1);
-        float dither = DitherMatrix(distanceDither, input.positionSS).r;
-        
-        clip(dither);
+        float dither = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, input.positionCS / _DitherTex_TexelSize.z / _DitherPixel).x;
+        clip(distanceDither - dither);
     #endif
 
     half4 color = FunnyFragmentBlinnPhong(inputData, surfaceData);

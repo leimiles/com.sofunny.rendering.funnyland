@@ -7,9 +7,12 @@
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
+    float4 _DitherTex_ST;
+    float4 _DitherTex_TexelSize;
     float4 _ObjectPosition;
     half4 _BaseColor;
     half4 _EmissionColor;
+    float _DitherPixel;
     half _Cutoff;
     half _Surface;
     half _MetallicOffset;
@@ -40,6 +43,12 @@ CBUFFER_END
 #endif
 
 TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
+TEXTURE2D(_DitherTex);   SAMPLER(sampler_DitherTex);
+
+float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
+{
+    return outputMin + (outputMax - outputMin) * ((value - inputMin) / (inputMax - inputMin));
+}
 
 inline void InitializeSimpleLitSurfaceData(float2 uv, out FunnySurfaceData outSurfaceData)
 {
