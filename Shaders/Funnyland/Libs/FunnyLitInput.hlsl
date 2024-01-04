@@ -45,11 +45,6 @@ TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
 TEXTURE2D(_DitherTex);   SAMPLER(sampler_DitherTex);
 float4 _DitherTex_TexelSize;
 
-float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
-{
-    return outputMin + (outputMax - outputMin) * ((value - inputMin) / (inputMax - inputMin));
-}
-
 inline void InitializeSimpleLitSurfaceData(float2 uv, out FunnySurfaceData outSurfaceData)
 {
     outSurfaceData = (FunnySurfaceData)0;
