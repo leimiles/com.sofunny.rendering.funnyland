@@ -84,7 +84,8 @@ namespace SoFunny.Rendering.Funnyland {
 #endif
 
         Material m_UIBackgroundBlurMaterial = null;
-
+        Texture2D m_DitherTexture; 
+            
         FunnyPostProcessPasses m_PostProcessPasses;
         internal FunnyColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
         internal FunnyPostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
@@ -185,17 +186,21 @@ namespace SoFunny.Rendering.Funnyland {
 #if UNITY_EDITOR
             m_DebugPass = new FunnyDebugPasses(data.debugModeType, m_DefaultStencilState, stencilData);
 #endif
+            m_DitherTexture = data.textureResources.ditherTexture;
         }
 
         // 目前所有情况都使用该配置  但是 希望 只用于编辑器情况下调整图形质量 进入游戏则需要根据玩法进行调用
         void ChangeGraphicQuality(GraphicQuality graphicQuality) {
             FunnyGraphicQualitySettings.SetDefaultQualitySetting(graphicQuality);
         }
+
+        void SetGraphicTexture(CommandBuffer cmd) {
+            cmd.SetGlobalTexture("_DitherTex", m_DitherTexture);
+        }
         
         void ChangeAssetSettings() {
             if (UniversalRenderPipeline.asset != null) {
-                // 临时取消
-                UniversalRenderPipeline.asset.renderScale = 1.0f;
+                UniversalRenderPipeline.asset.renderScale = GetAdaptedScale();
                 UniversalRenderPipeline.asset.supportsCameraDepthTexture = true;
 // #if UNITY_EDITOR
 //                 UniversalRenderPipeline.asset.supportsCameraOpaqueTexture = true;
@@ -252,7 +257,7 @@ namespace SoFunny.Rendering.Funnyland {
 // #else
 //             bool isGizmosEnabled = false;
 // #endif
-            
+            SetGraphicTexture(cmd);
 #if UNITY_EDITOR
             bool isDebug = m_DebugPass.isCreated;
             if (isDebug) {

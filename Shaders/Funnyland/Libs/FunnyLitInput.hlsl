@@ -7,9 +7,11 @@
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
+    float4 _DitherTex_ST;
     float4 _ObjectPosition;
     half4 _BaseColor;
     half4 _EmissionColor;
+    float _DitherPixel;
     half _Cutoff;
     half _Surface;
     half _MetallicOffset;
@@ -40,6 +42,8 @@ CBUFFER_END
 #endif
 
 TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
+TEXTURE2D(_DitherTex);   SAMPLER(sampler_DitherTex);
+float4 _DitherTex_TexelSize;
 
 inline void InitializeSimpleLitSurfaceData(float2 uv, out FunnySurfaceData outSurfaceData)
 {
