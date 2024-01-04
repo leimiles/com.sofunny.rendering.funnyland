@@ -42,7 +42,6 @@ Shader "SoFunny/Funnyland/FunnyLit"
         [HideInInspector] _AlphaToMask ("__alphaToMask", Float) = 0.0
 
         [HideInInspector][ToggleUI] _Dither ("__dither", Float) = 0.0
-        [HideInInspector] _DitherTex("DitherPattern", 2D) = "black" {}
         [HideInInspector] _DitherPixel("DitherPixel", float) = 1
 
         [HideInInspector][ToggleUI] _ReceiveShadows ("Receive Shadows", Float) = 1.0

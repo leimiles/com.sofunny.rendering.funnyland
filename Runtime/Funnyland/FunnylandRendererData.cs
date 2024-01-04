@@ -106,6 +106,15 @@ namespace SoFunny.Rendering.Funnyland {
         }
         public ShaderResources shaderResources = null;
 
+
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources {
+            [Reload("Textures/Funnyland/BayerDither.tga")]
+            public Texture2D ditherTexture;
+        }
+        public TextureResources textureResources = null;
+
+        
         [Serializable, ReloadGroup]
         public sealed class MeshResources {
             [Reload("Shaders/Funnyland/DecalBox/DecalBox.mesh"), SerializeField]
@@ -268,6 +277,9 @@ namespace SoFunny.Rendering.Funnyland {
         protected override void OnEnable() {
             base.OnEnable();
             if (shaderResources == null) {
+                return;
+            }
+            if (textureResources == null) {
                 return;
             }
             ReloadAllNullProperties();

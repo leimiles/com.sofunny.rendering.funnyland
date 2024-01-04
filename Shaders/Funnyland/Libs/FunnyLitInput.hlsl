@@ -8,7 +8,6 @@
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
     float4 _DitherTex_ST;
-    float4 _DitherTex_TexelSize;
     float4 _ObjectPosition;
     half4 _BaseColor;
     half4 _EmissionColor;
@@ -44,6 +43,7 @@ CBUFFER_END
 
 TEXTURE2D(_MixMap);   SAMPLER(sampler_MixMap);
 TEXTURE2D(_DitherTex);   SAMPLER(sampler_DitherTex);
+float4 _DitherTex_TexelSize;
 
 float Remap(float value, float inputMin, float inputMax, float outputMin, float outputMax)
 {
