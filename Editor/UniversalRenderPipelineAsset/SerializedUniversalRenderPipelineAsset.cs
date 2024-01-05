@@ -73,6 +73,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty useFastSRGBLinearConversion { get; }
         public SerializedProperty supportDataDrivenLensFlare { get; }
         public SerializedProperty enableSimpleRenderingProp { get; }
+        public SerializedProperty defaultShaderProp { get; }
+        public SerializedProperty defaultMaterialProp { get; }
+
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -156,6 +159,8 @@ namespace UnityEditor.Rendering.Universal
             supportDataDrivenLensFlare = serializedObject.FindProperty("m_SupportDataDrivenLensFlare");
             
             enableSimpleRenderingProp = serializedObject.FindProperty("m_EnalbeSimpleRendering");
+            defaultShaderProp = serializedObject.FindProperty("m_DefaultShader");
+            defaultMaterialProp = serializedObject.FindProperty("m_DefaultLitMaterial");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

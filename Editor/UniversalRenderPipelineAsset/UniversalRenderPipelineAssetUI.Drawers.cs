@@ -133,6 +133,9 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
             
                 EditorGUILayout.PropertyField(serialized.enableSimpleRenderingProp, Styles.enableSimpleRenderingText);
+                EditorGUILayout.PropertyField(serialized.defaultShaderProp, Styles.defaultShaderText);
+                EditorGUILayout.PropertyField(serialized.defaultMaterialProp, Styles.defaultMaterialText);
+
                 EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
                 // Asset 不再控制CopyColor 全部由代码控制
                 // EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
