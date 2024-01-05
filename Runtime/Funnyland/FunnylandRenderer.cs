@@ -421,7 +421,7 @@ namespace SoFunny.Rendering.Funnyland
             }
             #endregion
 
-            Debug.Log(cameraData.rendersOverlayUI);
+            //Debug.Log(cameraData.rendersOverlayUI);
 
             #region  copyColor pass
             copyColorPass = false;
