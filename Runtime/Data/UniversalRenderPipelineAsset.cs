@@ -417,8 +417,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
+        [SerializeField] Shader m_DefaultShader;
+        [SerializeField] Material m_DefaultLitMaterial;
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 11;
@@ -1561,7 +1562,13 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns the default Material.</returns>
         public override Material defaultMaterial
         {
-            get { return GetMaterial(DefaultMaterialType.Standard); }
+            get {
+                if (m_DefaultLitMaterial == null) {
+                    return GetMaterial(DefaultMaterialType.Standard);
+                }
+
+                return m_DefaultLitMaterial;
+            }
         }
 
         /// <summary>
@@ -1660,7 +1667,10 @@ namespace UnityEngine.Rendering.Universal
                 // However it seems there's an issue that LoadAssetAtPath will not load the asset in some cases. so adding the null check
                 // here to fix template tests.
                 if (scriptableRendererData != null)
-                {
+                {   
+                    if(m_DefaultShader!= null){
+                        return m_DefaultShader;
+                    }
                     Shader defaultShader = scriptableRendererData.GetDefaultShader();
                     if (defaultShader != null)
                         return defaultShader;
@@ -1672,7 +1682,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DefaultShader  = AssetDatabase.LoadAssetAtPath<Shader>(path);
                 }
 #endif
-
                 if (m_DefaultShader == null)
                     m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
 
