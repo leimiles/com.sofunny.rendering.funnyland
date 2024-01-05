@@ -1562,7 +1562,13 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns the default Material.</returns>
         public override Material defaultMaterial
         {
-            get { return GetMaterial(DefaultMaterialType.Standard); }
+            get {
+                if (m_DefaultLitMaterial == null) {
+                    m_DefaultLitMaterial = GetMaterial(DefaultMaterialType.Standard);
+                }
+
+                return m_DefaultLitMaterial;
+            }
         }
 
         /// <summary>
