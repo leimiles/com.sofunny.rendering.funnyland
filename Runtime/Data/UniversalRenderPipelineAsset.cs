@@ -1564,7 +1564,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get {
                 if (m_DefaultLitMaterial == null) {
-                    m_DefaultLitMaterial = GetMaterial(DefaultMaterialType.Standard);
+                    return GetMaterial(DefaultMaterialType.Standard);
                 }
 
                 return m_DefaultLitMaterial;
@@ -1667,7 +1667,10 @@ namespace UnityEngine.Rendering.Universal
                 // However it seems there's an issue that LoadAssetAtPath will not load the asset in some cases. so adding the null check
                 // here to fix template tests.
                 if (scriptableRendererData != null)
-                {
+                {   
+                    if(m_DefaultShader!= null){
+                        return m_DefaultShader;
+                    }
                     Shader defaultShader = scriptableRendererData.GetDefaultShader();
                     if (defaultShader != null)
                         return defaultShader;
@@ -1679,7 +1682,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DefaultShader  = AssetDatabase.LoadAssetAtPath<Shader>(path);
                 }
 #endif
-
                 if (m_DefaultShader == null)
                     m_DefaultShader = Shader.Find(ShaderUtils.GetShaderPath(ShaderPathID.Lit));
 
