@@ -417,8 +417,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
+        [SerializeField] Shader m_DefaultShader;
+        [SerializeField] Material m_DefaultLitMaterial;
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 11;
