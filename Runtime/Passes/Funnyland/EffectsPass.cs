@@ -24,7 +24,10 @@ namespace SoFunny.Rendering.Funnyland {
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
             var cmd = renderingData.commandBuffer;
-
+            CameraType cameraType = renderingData.cameraData.camera.cameraType;
+            if (cameraType != CameraType.Game && cameraType != CameraType.SceneView) {
+                return;
+            }
             using (new ProfilingScope(cmd, m_ProfilingSampler)) {
                 DrawRenderersByAttacked(ref cmd, 0);
                 DrawRenderersByOccluder(ref cmd, 1);
@@ -92,39 +95,49 @@ namespace SoFunny.Rendering.Funnyland {
             }
         }
 
-        void DrawRenderersBySelectOutline(ref CommandBuffer cmd, ref RenderingData renderingData, int passIndex = 2) {
+        void DrawRenderersBySelectOutline(ref CommandBuffer cmd, ref RenderingData renderingData, int passIndex = 2, int passStencilIndex = 3) {
             if (EffectsManager.EffectsTriggers == null) {
                 return ;
             }
-
-            int outlineID = Shader.PropertyToID("_SelectOutlineTex");
-            bool isCreatTex = true;
-            float widthOutline = 0;
-            Color colorOutline = Color.black;
+            
             foreach (var effectsTrigger in EffectsManager.EffectsTriggers) {
                 var (isActive, width, color) = effectsTrigger.GetOutlineParam();
 
                 if (isActive) {
+                    // 写入模板测试
                     foreach (var renderer in effectsTrigger.GetRenderers()) {
                         if (renderer == null) {
                             continue;
                         }
 
-                        if (isCreatTex) {
-                            cmd.GetTemporaryRT(outlineID, renderingData.cameraData.renderer.cameraColorTargetHandle.rt.descriptor);
-                            cmd.SetRenderTarget(outlineID, renderingData.cameraData.renderer.cameraDepthTargetHandle);
-                            cmd.ClearRenderTarget(false, true, Color.clear);
-                            isCreatTex = false;
-                        }
-
-                        // renderer.GetPropertyBlock(materialPropertyBlock);
-                        // materialPropertyBlock.SetFloat(Shader.PropertyToID("_OutlineWidth"), width);
-                        // materialPropertyBlock.SetColor(Shader.PropertyToID("_OutlineColor"), color);
-                        // renderer.SetPropertyBlock(materialPropertyBlock);
-                        widthOutline = width;
-                        colorOutline = color;
                         m_sharedMaterials.Clear();
                         renderer.GetSharedMaterials(m_sharedMaterials);
+                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                            if (m_sharedMaterials == null)
+                                continue;
+
+                            cmd.DrawRenderer(renderer, m_Material, i, passStencilIndex);
+                        }
+                    }
+                }
+            }
+            
+            foreach (var effectsTrigger in EffectsManager.EffectsTriggers) {
+                var (isActive, width, color) = effectsTrigger.GetOutlineParam();
+
+                if (isActive) {
+                    // 外扩描边
+                    foreach (var renderer in effectsTrigger.GetRenderers()) {
+                        if (renderer == null) {
+                            continue;
+                        }
+
+                        renderer.GetPropertyBlock(materialPropertyBlock);
+                        // materialPropertyBlock.SetVector(Shader.PropertyToID("_MeshCenter"),   renderer.transform.worldToLocalMatrix.MultiplyPoint(renderer.bounds.center));
+                        materialPropertyBlock.SetFloat(Shader.PropertyToID("_OutlineWidth"), width);
+                        materialPropertyBlock.SetColor(Shader.PropertyToID("_OutlineColor"), color);
+                        renderer.SetPropertyBlock(materialPropertyBlock);
+                        
                         for (int i = 0; i < m_sharedMaterials.Count; i++) {
                             if (m_sharedMaterials == null)
                                 continue;
@@ -133,16 +146,6 @@ namespace SoFunny.Rendering.Funnyland {
                         }
                     }
                 }
-            }
-
-            if (!isCreatTex) {
-                //cmd.SetGlobalTexture("_SelectOutlineTex", outlineID);
-                // 暂时是使用EffectsManager.EffectsTriggers中最后一个开启OutLine得参数，需要根据玩法需求进行调整
-                m_Material.SetFloat(Shader.PropertyToID("_OutlineWidth"), widthOutline);
-                m_Material.SetColor(Shader.PropertyToID("_OutlineColor"), colorOutline);
-                cmd.SetRenderTarget(renderingData.cameraData.renderer.cameraColorTargetHandle);
-                Blitter.BlitTexture(cmd, Vector4.one, m_Material, 3);
-                cmd.ReleaseTemporaryRT(outlineID);
             }
         }
     }

@@ -8,11 +8,12 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
         [HideInInspector][HDR][PerRendererData]_OccludeeColor ("Occludee Color", Color) = (1, 0, 0, 1)
         [HideInInspector][PerRendererData]_OutlineWidth ("Outline Width", Range(0.0, 0.1)) = 0.008
         [HideInInspector][HDR][PerRendererData]_OutlineColor ("Outline Color", Color) = (1, 0, 0, 1)
+        [HideInInspector][PerRendererData]_MeshCenter ("Outline Color", Vector) = (0, 0, 0, 0)
     }
 
     // used for all passes
     HLSLINCLUDE
-
+    #pragma enable_d3d11_debug_symbols
     //#pragma exclude_renderers gles gles3 glcore
     #pragma target 4.5
     #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -24,9 +25,10 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
         half4 _OccludeeColor;
         half _OutlineWidth;
         half4 _OutlineColor;
-        float4 _SelectOutlineTex_TexelSize;
+        float4 _MeshCenter;
     CBUFFER_END
     TEXTURE2D(_SelectOutlineTex);                SAMPLER(sampler_SelectOutlineTex);
+    float4 _SelectOutlineTex_TexelSize;
     
     ENDHLSL
 
@@ -139,10 +141,17 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             //Blend One Zero
             Name "Outline"
 
-            Cull Back
+            Cull Off
             ZTest Off
+            
+            Stencil
+            {
+                Ref 4
+                Comp NotEqual
+            }
+            
             HLSLPROGRAM
-
+            
             #pragma vertex vert
             #pragma fragment frag
 
@@ -157,32 +166,76 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
-                half3 normalWS : TEXCOORD0;
-                half3 viewDirWS : TEXCOORD1;
             };
 
 
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
-                // input.positionOS += input.normalOS * _OutlineWidth;
+
+                input.positionOS += input.normalOS * _OutlineWidth / 100;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
-                VertexNormalInputs vni = GetVertexNormalInputs(input.normalOS);
-                o.normalWS = vni.normalWS;
-                o.viewDirWS = GetWorldSpaceNormalizeViewDir(vpi.positionWS);
                 return o;
             }
 
             half4 frag(varyings i) : SV_Target
             {
-                //_OutlineColor = _OutlineColor * _OccludeeColorIntensity;
-                //return half4(_OutlineColor.rgb, _OccludeeColorIntensity);
-                //return _OutlineColor;
-                return 1;
+                _OutlineColor = _OutlineColor * _OccludeeColorIntensity;
+                return half4(_OutlineColor.rgb, _OccludeeColorIntensity);
             }
             ENDHLSL
         }
+        
+        Pass
+        {
+            Name "Outline Stencil"
+            
+            Cull Back
+            ZTest Off
+            ColorMask 0
+            
+            Stencil
+            {
+                 Ref 4
+                 Comp Always
+                 Pass Replace
+            }
+            
+            HLSLPROGRAM
+            
+            #pragma vertex vert
+            #pragma fragment frag
+
+
+            struct attributes
+            {
+                float3 positionOS : POSITION;
+            };
+
+
+            struct varyings
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+
+            varyings vert(attributes input)
+            {
+                varyings o = (varyings)0;
+                VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
+                o.positionCS = vpi.positionCS;
+                return o;
+            }
+
+            half4 frag(varyings i) : SV_Target
+            {
+                return 0;
+            }
+            ENDHLSL
+            
+        }
+        
         
         Pass
         {
