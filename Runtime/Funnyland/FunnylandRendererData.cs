@@ -129,7 +129,9 @@ namespace SoFunny.Rendering.Funnyland {
         public MeshResources meshResources = null;
         
         [SerializeField] LayerMask m_OccluderStencilLayerMask = 0;
+        [SerializeField] LayerMask m_OutlineStencilLayerMask = 0;
         private RenderObjects.RenderObjectsSettings m_OccluderStencilData = new RenderObjects.RenderObjectsSettings();
+        private RenderObjects.RenderObjectsSettings m_OutlineStencilData = new RenderObjects.RenderObjectsSettings();
 
         [SerializeField] HistogramChannel m_Histogram = HistogramChannel.None;
         [SerializeField] private bool m_enableUIBlur = false;
@@ -236,6 +238,16 @@ namespace SoFunny.Rendering.Funnyland {
                 m_OccluderStencilData.stencilSettings.stencilReference = 3;
                 m_OccluderStencilData.stencilSettings.passOperation = StencilOp.Replace;
                 return m_OccluderStencilData;
+            }
+        }
+        
+        public RenderObjects.RenderObjectsSettings outlineStencilData {
+            get {
+                m_OutlineStencilData.filterSettings.LayerMask = m_OutlineStencilLayerMask;
+                m_OutlineStencilData.stencilSettings.overrideStencilState = true;
+                m_OutlineStencilData.stencilSettings.stencilReference = 4;
+                m_OutlineStencilData.stencilSettings.passOperation = StencilOp.Replace;
+                return m_OutlineStencilData;
             }
         }
 
