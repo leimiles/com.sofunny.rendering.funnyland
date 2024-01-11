@@ -33,11 +33,11 @@ namespace SoFunny.Rendering.Funnyland {
         }
         
         // 测试
-        private void Start() {
-            SetAttackedState(true);
-            SetOutlineState(true);
-            SetOccludeeState(true);
-        }
+        // private void Start() {
+        //     SetAttackedState(true);
+        //     SetOutlineState(true);
+        //     SetOccludeeState(true);
+        // }
 
         public void SetAttackedState(bool isAttackedActive) {
             if (isAttackedActive && attack.intensity > 0) {
