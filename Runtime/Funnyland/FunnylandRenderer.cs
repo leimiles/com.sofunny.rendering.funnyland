@@ -175,7 +175,6 @@ namespace SoFunny.Rendering.Funnyland {
 
             m_OutlineStencil = new RenderObjectsPass("outlineStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.outlineStencilData.filterSettings.RenderQueueType, data.outlineStencilData.filterSettings.LayerMask, data.outlineStencilData.cameraSettings);
             m_OutlineStencil.SetStencilState(data.outlineStencilData.stencilSettings.stencilReference, data.outlineStencilData.stencilSettings.stencilCompareFunction, data.outlineStencilData.stencilSettings.passOperation, data.outlineStencilData.stencilSettings.failOperation, data.outlineStencilData.stencilSettings.zFailOperation);
-            m_OutlineStencil.SetDetphState(false, CompareFunction.Disabled);
             
             m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial);
 
