@@ -33,12 +33,14 @@ namespace SoFunny.Rendering.Funnyland {
         }
         
         // 测试
-        // private void Start() {
-        //     SetOutlineState(true);
-        // }
+        private void Start() {
+            SetAttackedState(true);
+            SetOutlineState(true);
+            SetOccludeeState(true);
+        }
 
         public void SetAttackedState(bool isAttackedActive) {
-            if (isAttackedActive) {
+            if (isAttackedActive && attack.intensity > 0) {
                 attack.renderers = renderers;
                 attack.material = effectMaterial;
                 attack.isActive = isAttackedActive;
@@ -50,7 +52,7 @@ namespace SoFunny.Rendering.Funnyland {
         }
         
         public void SetOutlineState(bool isOutlineActive) {
-            if (isOutlineActive) {
+            if (isOutlineActive && outline.with > 0) {
                 outline.renderers = renderers;
                 outline.material = effectMaterial;
                 outline.isActive = isOutlineActive;
@@ -62,7 +64,7 @@ namespace SoFunny.Rendering.Funnyland {
         }
         
         public void SetOccludeeState(bool isOccludeeActive) {
-            if (isOccludeeActive) {
+            if (isOccludeeActive && occludee.intensity > 0) {
                 occludee.renderers = renderers;
                 occludee.material = effectMaterial;
                 occludee.isActive = isOccludeeActive;
@@ -75,6 +77,13 @@ namespace SoFunny.Rendering.Funnyland {
 
         private void OnDestroy() {
             Destroy(m_EffectMaterial);
+            if(attack.material != null)             
+                Destroy(attack.material);
+            if(outline.material != null)             
+                Destroy(outline.material);
+            if(occludee.material != null)             
+                Destroy(occludee.material);
+
             EffectsManager.RemoveAttackedTrigger(attack);
             EffectsManager.RemoveOutlineTrigger(outline);
             EffectsManager.RemoveOccludeeTrigger(occludee);

@@ -70,6 +70,14 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 varyings o = (varyings)0;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
+
+                #if UNITY_UV_STARTS_AT_TOP
+                o.positionCS.z += 0.01;
+                #else
+                o.positionCS.z -= 0.01;
+                #endif
+                
+
                 VertexNormalInputs vni = GetVertexNormalInputs(input.normalOS);
                 o.normalWS = vni.normalWS;
                 o.viewDirWS = GetWorldSpaceNormalizeViewDir(vpi.positionWS);

@@ -48,7 +48,6 @@ namespace SoFunny.Rendering.Funnyland {
                         if (renderer == null) {
                             continue;
                         }
-
                         if (intensity != 0) {
                             // renderer.GetPropertyBlock(materialPropertyBlock);
                             // materialPropertyBlock.SetColor(Shader.PropertyToID("_Color"), color);
@@ -84,21 +83,23 @@ namespace SoFunny.Rendering.Funnyland {
                             continue;
                         }
 
-                        // renderer.GetPropertyBlock(materialPropertyBlock);
-                        // materialPropertyBlock.SetFloat(Shader.PropertyToID("_OccludeeColorIntensity"), intensity);
-                        // materialPropertyBlock.SetColor(Shader.PropertyToID("_OccludeeColor"), color);
-                        // renderer.SetPropertyBlock(materialPropertyBlock);
-                        Material material = occludeeParam.GetMaterial();
-                        material.SetFloat("_OccludeeColorIntensity", intensity);
-                        material.SetColor("_OccludeeColor", color);
+                        if (intensity != 0) {
+                            // renderer.GetPropertyBlock(materialPropertyBlock);
+                            // materialPropertyBlock.SetFloat(Shader.PropertyToID("_OccludeeColorIntensity"), intensity);
+                            // materialPropertyBlock.SetColor(Shader.PropertyToID("_OccludeeColor"), color);
+                            // renderer.SetPropertyBlock(materialPropertyBlock);
+                            Material material = occludeeParam.GetMaterial();
+                            material.SetFloat("_OccludeeColorIntensity", intensity);
+                            material.SetColor("_OccludeeColor", color);
 
-                        m_sharedMaterials.Clear();
-                        renderer.GetSharedMaterials(m_sharedMaterials);
-                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
-                            if (m_sharedMaterials == null)
-                                continue;
-                        
-                            cmd.DrawRenderer(renderer, material, i, passIndex);
+                            m_sharedMaterials.Clear();
+                            renderer.GetSharedMaterials(m_sharedMaterials);
+                            for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                                if (m_sharedMaterials == null)
+                                    continue;
+
+                                cmd.DrawRenderer(renderer, material, i, passIndex);
+                            }
                         }
                     }
                 }
@@ -141,22 +142,25 @@ namespace SoFunny.Rendering.Funnyland {
                         if (renderer == null) {
                             continue;
                         }
-                        // materialPropertyBlock会同时打断其他的 Pass 的 SRPBatch
-                        // renderer.GetPropertyBlock(materialPropertyBlock);
-                        // materialPropertyBlock.SetFloat(Shader.PropertyToID("_OutlineWidth"), width);
-                        // materialPropertyBlock.SetColor(Shader.PropertyToID("_OutlineColor"), color);
-                        // renderer.SetPropertyBlock(materialPropertyBlock);
-                        Material material = outlineParam.GetMaterial();
-                        material.SetFloat("_OutlineWidth", width);
-                        material.SetColor("_OutlineColor", color);
-                        
-                        m_sharedMaterials.Clear();
-                        renderer.GetSharedMaterials(m_sharedMaterials);
-                        
-                        for (int i = 0; i < m_sharedMaterials.Count; i++) {
-                            if (m_sharedMaterials == null)
-                                continue;
-                            cmd.DrawRenderer(renderer, material, i, passIndex);
+
+                        if (width > 0) {
+                            // materialPropertyBlock会同时打断其他的 Pass 的 SRPBatch
+                            // renderer.GetPropertyBlock(materialPropertyBlock);
+                            // materialPropertyBlock.SetFloat(Shader.PropertyToID("_OutlineWidth"), width);
+                            // materialPropertyBlock.SetColor(Shader.PropertyToID("_OutlineColor"), color);
+                            // renderer.SetPropertyBlock(materialPropertyBlock);
+                            Material material = outlineParam.GetMaterial();
+                            material.SetFloat("_OutlineWidth", width);
+                            material.SetColor("_OutlineColor", color);
+
+                            m_sharedMaterials.Clear();
+                            renderer.GetSharedMaterials(m_sharedMaterials);
+
+                            for (int i = 0; i < m_sharedMaterials.Count; i++) {
+                                if (m_sharedMaterials == null)
+                                    continue;
+                                cmd.DrawRenderer(renderer, material, i, passIndex);
+                            }
                         }
                     }
                 }
