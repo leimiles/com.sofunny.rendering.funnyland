@@ -72,9 +72,9 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 o.positionCS = vpi.positionCS;
 
                 #if UNITY_UV_STARTS_AT_TOP
-                o.positionCS.z += 0.01;
+                o.positionCS.z += 0.0001;
                 #else
-                o.positionCS.z -= 0.01;
+                o.positionCS.z -= 0.0001;
                 #endif
                 
 
