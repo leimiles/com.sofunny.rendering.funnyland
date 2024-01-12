@@ -3,25 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace SoFunny.Rendering.Funnyland {
     /// <summary>
     /// 受击特效
     /// </summary>
     public class EffectsPass : ScriptableRenderPass {
-        // Material m_Material;
-        // MaterialPropertyBlock materialPropertyBlock;
+        Material m_Material;
         ProfilingSampler m_ProfilingSampler;
         List<Material> m_sharedMaterials;
-        public EffectsPass(RenderPassEvent renderPassEvent, Material material) {
-            // m_Material = material;
+        List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
+        FilteringSettings m_OccluderFiltering;
+        FilteringSettings m_OutlineFiltering;
+
+        public EffectsPass(RenderPassEvent renderPassEvent, Material material, string[] shaderTags) {
+            m_Material = material;
             this.renderPassEvent = renderPassEvent;
-            // materialPropertyBlock = new MaterialPropertyBlock();
             EffectsManager.Init();
             m_ProfilingSampler = new ProfilingSampler("EffectsPass");
             m_sharedMaterials = new List<Material>();
+            if (shaderTags != null && shaderTags.Length > 0)
+            {
+                foreach (var passName in shaderTags) {
+                    m_ShaderTagIdList.Add(new ShaderTagId(passName));
+                }
+            }
         }
 
+        public void SetStencilFiltering(LayerMask occluderLayerMask, LayerMask outLineLayerMask) {
+            m_OccluderFiltering = new FilteringSettings(RenderQueueRange.all, occluderLayerMask);
+            m_OutlineFiltering = new FilteringSettings(RenderQueueRange.all, outLineLayerMask);
+        }
+        
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) {
             var cmd = renderingData.commandBuffer;
             CameraType cameraType = renderingData.cameraData.camera.cameraType;
@@ -30,8 +44,20 @@ namespace SoFunny.Rendering.Funnyland {
             }
             using (new ProfilingScope(cmd, m_ProfilingSampler)) {
                 DrawRenderersByAttacked(ref cmd, 0);
-                DrawRenderersByOccluder(ref cmd, 1);
+                
+                if (EffectsManager.OutlineParams != null && EffectsManager.OutlineParams.Count > 0) {
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                    DrawStencil(context, ref renderingData, SortingCriteria.None, m_OutlineFiltering, 4);
+                }
                 DrawRenderersBySelectOutline(ref cmd, ref renderingData, 2);
+ 
+                if (EffectsManager.OccludeeParams != null && EffectsManager.OccludeeParams.Count > 0) {
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                    DrawStencil(context, ref renderingData, SortingCriteria.None, m_OccluderFiltering, 3);
+                }
+                DrawRenderersByOccluder(ref cmd, 1);
             }
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -74,6 +100,7 @@ namespace SoFunny.Rendering.Funnyland {
             if (EffectsManager.OccludeeParams == null) {
                 return ;
             }
+
             foreach (var occludeeParam in EffectsManager.OccludeeParams) {
                 var (isActive, intensity, color) = occludeeParam.GetParams();
 
@@ -165,6 +192,16 @@ namespace SoFunny.Rendering.Funnyland {
                     }
                 }
             }
+        }
+        
+        void DrawStencil (ScriptableRenderContext context, ref RenderingData renderingData, SortingCriteria sortingCriteria, FilteringSettings filteringSettings, int passIndex){
+            DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            drawingSettings.overrideMaterial = m_Material;
+            drawingSettings.overrideMaterialPassIndex = passIndex;
+            drawingSettings.overrideShader = null;
+            drawingSettings.overrideShaderPassIndex = 0;
+
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings);
         }
     }
 }

@@ -91,6 +91,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             }
             ENDHLSL
         }
+        
         Pass
         {
             Blend One Zero
@@ -115,9 +116,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 float3 positionOS : POSITION;
                 half3 normalOS : NORMAL;
             };
-
-
-
+            
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
@@ -193,6 +192,55 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 return half4(_OutlineColor.rgb, _OccludeeColorIntensity);
             }
             ENDHLSL
+        }
+        
+        Pass
+        {
+            Name "Occluder Stencil"
+            
+            Cull Back
+            ZTest Off
+            ColorMask 0
+            
+            Stencil
+            {
+                 Ref 3
+                 Comp Always
+                 Pass Replace
+            }
+            
+            HLSLPROGRAM
+            
+            #pragma vertex vert
+            #pragma fragment frag
+
+
+            struct attributes
+            {
+                float3 positionOS : POSITION;
+            };
+
+
+            struct varyings
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+
+            varyings vert(attributes input)
+            {
+                varyings o = (varyings)0;
+                VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
+                o.positionCS = vpi.positionCS;
+                return o;
+            }
+
+            half4 frag(varyings i) : SV_Target
+            {
+                return 0;
+            }
+            ENDHLSL
+            
         }
         
         Pass

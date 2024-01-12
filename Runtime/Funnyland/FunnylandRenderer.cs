@@ -49,9 +49,7 @@ namespace SoFunny.Rendering.Funnyland {
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
-
-        RenderObjectsPass m_OccluderStencil;
-        RenderObjectsPass m_OutlineStencil;
+        
         EffectsPass m_EffectsPass;
 
         DrawSkyboxPass m_DrawSkyboxPass;
@@ -167,16 +165,9 @@ namespace SoFunny.Rendering.Funnyland {
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-
-            // 受击特效模板遮罩
-            m_OccluderStencil = new RenderObjectsPass("occluderStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.occluderStencilData.filterSettings.RenderQueueType, data.occluderStencilData.filterSettings.LayerMask, data.occluderStencilData.cameraSettings);
-            m_OccluderStencil.SetStencilState(data.occluderStencilData.stencilSettings.stencilReference, data.occluderStencilData.stencilSettings.stencilCompareFunction, data.occluderStencilData.stencilSettings.passOperation, data.occluderStencilData.stencilSettings.failOperation, data.occluderStencilData.stencilSettings.zFailOperation);
-            m_OutlineStencil.SetDetphState(false);
-
-            m_OutlineStencil = new RenderObjectsPass("outlineStencil", RenderPassEvent.AfterRenderingOpaques, data.shaderTags, data.outlineStencilData.filterSettings.RenderQueueType, data.outlineStencilData.filterSettings.LayerMask, data.outlineStencilData.cameraSettings);
-            m_OutlineStencil.SetStencilState(data.outlineStencilData.stencilSettings.stencilReference, data.outlineStencilData.stencilSettings.stencilCompareFunction, data.outlineStencilData.stencilSettings.passOperation, data.outlineStencilData.stencilSettings.failOperation, data.outlineStencilData.stencilSettings.zFailOperation);
             
-            m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial);
+            m_EffectsPass = new EffectsPass(RenderPassEvent.BeforeRenderingPostProcessing, m_EffectsMaterial, data.shaderTags);
+            m_EffectsPass.SetStencilFiltering(data.occluderStencilData.filterSettings.LayerMask, data.outlineStencilData.filterSettings.LayerMask);
 
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial, shouldClear: true, copyResolvedDepth: false);
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
@@ -399,13 +390,7 @@ namespace SoFunny.Rendering.Funnyland {
             #endregion
 
             #region effect pass
-
-            if (EffectsManager.OccludeeParams != null && EffectsManager.OccludeeParams.Count > 0)
-                EnqueuePass(m_OccluderStencil);
-            if (EffectsManager.OutlineParams != null && EffectsManager.OutlineParams.Count > 0)
-                EnqueuePass(m_OutlineStencil);
             EnqueuePass(m_EffectsPass);
-
             #endregion
 
             #region skybox pass
