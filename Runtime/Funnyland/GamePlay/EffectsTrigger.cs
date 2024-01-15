@@ -51,8 +51,16 @@ namespace SoFunny.Rendering.Funnyland {
             }
         }
         
+        public void SetAttackedParam(bool isAttackedActive, float intensity, Color attackColor) {
+            attack.intensity = intensity;
+            attack.color = attackColor;
+            if (isAttackedActive) {
+                SetAttackedState(isAttackedActive);
+            }
+        }
+        
         public void SetOutlineState(bool isOutlineActive) {
-            if (isOutlineActive && outline.with > 0) {
+            if (isOutlineActive && outline.width > 0) {
                 outline.renderers = renderers;
                 outline.material = effectMaterial;
                 outline.isActive = isOutlineActive;
@@ -60,6 +68,14 @@ namespace SoFunny.Rendering.Funnyland {
             } else {
                 outline.isActive = isOutlineActive;
                 EffectsManager.RemoveOutlineTrigger(outline);
+            }
+        }
+        
+        public void SetOutlineParam(bool isOutlineActive, float width, Color outlineColor) {
+            outline.width = width;
+            outline.color = outlineColor;
+            if (isOutlineActive) {
+                SetOutlineState(isOutlineActive);
             }
         }
         
@@ -72,6 +88,14 @@ namespace SoFunny.Rendering.Funnyland {
             } else {
                 occludee.isActive = isOccludeeActive;
                 EffectsManager.RemoveOccludeeTrigger(occludee);
+            }
+        }
+        
+        public void SetOccludeeParam(bool isOccludeeActive, float intensity, Color outlineColor) {
+            occludee.intensity = intensity;
+            occludee.color = outlineColor;
+            if (isOccludeeActive) {
+                SetOccludeeState(isOccludeeActive);
             }
         }
 
@@ -124,12 +148,12 @@ namespace SoFunny.Rendering.Funnyland {
     
     [System.Serializable]
     public class OutlineParam : EffectParam{
-        [Range(0f, 5.0f)] public float with;
+        [Range(0f, 5.0f)] public float width;
         [ColorUsageAttribute(true, true)] public Color color;
         
         public (bool, float, Color) GetParams() {
             if (this.isActive) {
-                return (true, this.with, this.color);
+                return (true, this.width, this.color);
             }
 
             return (false, 0f, Color.black);
