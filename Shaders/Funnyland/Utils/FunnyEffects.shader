@@ -14,10 +14,18 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
     // used for all passes
     HLSLINCLUDE
     #pragma enable_d3d11_debug_symbols
-    //#pragma exclude_renderers gles gles3 glcore
-    #pragma target 4.5
-    #pragma multi_compile _ DOTS_INSTANCING_ON
+
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+    #ifndef HAVE_VFX_MODIFICATION
+        #pragma multi_compile _ DOTS_INSTANCING_ON
+        #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
+            #pragma target 3.5 DOTS_INSTANCING_ON
+        #else
+            #pragma target 4.5 DOTS_INSTANCING_ON
+        #endif
+    #endif
+    
     CBUFFER_START(UnityPerMaterial)
         half4 _Color;
         half _AttackedColorIntensity;
@@ -71,8 +79,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 varyings o = (varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
 
@@ -91,8 +99,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 _Color = _Color * _AttackedColorIntensity;
                 return half4(_Color.rgb, _AttackedColorIntensity);
             }
@@ -138,8 +146,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 varyings o = (varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 VertexNormalInputs vni = GetVertexNormalInputs(input.normalOS);
@@ -150,8 +158,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 _OccludeeColor = _OccludeeColor * _OccludeeColorIntensity;
                 return half4(_OccludeeColor.rgb, _OccludeeColorIntensity);
             }
@@ -198,8 +206,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 varyings o = (varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 input.positionOS += input.normalOS * _OutlineWidth / 100;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
@@ -208,8 +216,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 return _OutlineColor;
             }
             ENDHLSL
@@ -220,7 +228,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Name "Occluder Stencil"
             
             Cull Back
-            ZTest Off
+            ZTest On
             ColorMask 0
             
             Stencil
@@ -255,8 +263,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 varyings o = (varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 return o;
@@ -264,8 +272,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 return 0;
             }
             ENDHLSL
@@ -312,8 +320,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 varyings o = (varyings)0;
                 UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                UNITY_TRANSFER_INSTANCE_ID(input, o);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 return o;
@@ -321,8 +329,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_INSTANCE_ID(i);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 return 0;
             }
             ENDHLSL
@@ -418,7 +426,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             
             float4 frag(Varyings i) : SV_Target
             {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 half diff = saturate(1.0 - Sobel(i));
                 half3 color = _OutlineColor.rgb * diff;
                 return half4(color, diff);
