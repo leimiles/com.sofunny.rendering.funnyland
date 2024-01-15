@@ -45,12 +45,12 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             #pragma vertex vert
             #pragma fragment frag
-
-
+            
             struct attributes
             {
                 float3 positionOS : POSITION;
                 half3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
             
             struct varyings
@@ -58,6 +58,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 float4 positionCS : SV_POSITION;
                 half3 normalWS : TEXCOORD0;
                 half3 viewDirWS : TEXCOORD1;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             void fresnelEffect(half3 Normal, half3 ViewDir, half Power, out half Out)
@@ -68,6 +70,9 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
 
@@ -86,6 +91,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 _Color = _Color * _AttackedColorIntensity;
                 return half4(_Color.rgb, _AttackedColorIntensity);
             }
@@ -115,6 +122,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 float3 positionOS : POSITION;
                 half3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
             
             struct varyings
@@ -122,11 +130,16 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 float4 positionCS : SV_POSITION;
                 half3 normalWS : TEXCOORD0;
                 half3 viewDirWS : TEXCOORD1;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 VertexNormalInputs vni = GetVertexNormalInputs(input.normalOS);
@@ -137,6 +150,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 _OccludeeColor = _OccludeeColor * _OccludeeColorIntensity;
                 return half4(_OccludeeColor.rgb, _OccludeeColorIntensity);
             }
@@ -167,19 +182,24 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             {
                 float3 positionOS : POSITION;
                 half3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
 
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
 
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
-
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 input.positionOS += input.normalOS * _OutlineWidth / 100;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
@@ -188,8 +208,9 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
-                _OutlineColor = _OutlineColor * _OccludeeColorIntensity;
-                return half4(_OutlineColor.rgb, _OccludeeColorIntensity);
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                return _OutlineColor;
             }
             ENDHLSL
         }
@@ -218,18 +239,24 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             struct attributes
             {
                 float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
 
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
 
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 return o;
@@ -237,6 +264,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 return 0;
             }
             ENDHLSL
@@ -267,18 +296,24 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             struct attributes
             {
                 float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
 
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
 
             varyings vert(attributes input)
             {
                 varyings o = (varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
                 return o;
@@ -286,6 +321,8 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
             half4 frag(varyings i) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 return 0;
             }
             ENDHLSL
