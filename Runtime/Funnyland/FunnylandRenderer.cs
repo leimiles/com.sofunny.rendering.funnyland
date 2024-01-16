@@ -424,10 +424,10 @@ namespace SoFunny.Rendering.Funnyland {
 
             #endregion
 
-            #region copyDepth pass
-
-            requiresDepthCopyPass = false;
-            if (requiresDepthCopyPass) {
+            #region  copyDepth pass
+            // requiresDepthCopyPass = false;
+            if (requiresDepthCopyPass)
+            {
                 // 分配 m_DepthTexture 内存
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
