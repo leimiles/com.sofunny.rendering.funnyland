@@ -444,7 +444,7 @@ namespace SoFunny.Rendering.Funnyland
             #endregion
 
             #region  copyDepth pass
-            requiresDepthCopyPass = false;
+            // requiresDepthCopyPass = false;
             if (requiresDepthCopyPass)
             {
                 // 分配 m_DepthTexture 内存
