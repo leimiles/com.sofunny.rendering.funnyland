@@ -16,7 +16,9 @@ namespace SoFunny.Rendering.Funnyland {
             public static readonly GUIContent FrameLimit = EditorGUIUtility.TrTextContent("帧率锁定: ", "当前的帧率 ultra = 60, standard = 30.");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("镜头效果: ", "只能调色，别的不开");
             public static readonly GUIContent PostProssType = EditorGUIUtility.TrTextContent("后处理开关: ", "只允许主相机或者最后一个相机渲染Post");
-            public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体和开启遮挡描边");
+            public static readonly GUIContent OccluderStencilLayerMask = EditorGUIUtility.TrTextContent("遮挡LayerMask: ", "在该layer层后的物体开启遮挡显影");
+            public static readonly GUIContent OutlineStencilLayerMask = EditorGUIUtility.TrTextContent("选中描边LayerMask: ", "该Layer层可以选中描边");
+
             public static readonly GUIContent Histogram = EditorGUIUtility.TrTextContent("色彩直方图: ", "开启色彩直方图debug");
             public static readonly GUIContent Debug = EditorGUIUtility.TrTextContent("DebugMode: ", "Debug模式进行某些特殊效果的Debug，仅在Editor情况下");
             public static readonly GUIContent EnableUIBgBlur = EditorGUIUtility.TrTextContent("开启UI背景模糊: ", "开启UI背景模糊效果");
@@ -30,6 +32,7 @@ namespace SoFunny.Rendering.Funnyland {
         SerializedProperty m_PostProcessType;
         SerializedProperty m_PostProcessData;
         SerializedProperty m_OccluderStencilLayerMask;
+        SerializedProperty m_OutlineStencilLayerMask;
         SerializedProperty m_Histogram;
         SerializedProperty m_EnableUIBlur;
         SerializedProperty m_uiBlurMaxIterations;
@@ -50,6 +53,7 @@ namespace SoFunny.Rendering.Funnyland {
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_DebugMode = serializedObject.FindProperty("debugModeType");
             m_OccluderStencilLayerMask = serializedObject.FindProperty("m_OccluderStencilLayerMask");
+            m_OutlineStencilLayerMask = serializedObject.FindProperty("m_OutlineStencilLayerMask");
             m_Histogram = serializedObject.FindProperty("m_Histogram");
             m_EnableUIBlur = serializedObject.FindProperty("m_enableUIBlur");
             SerializedProperty uiBlurSettings = serializedObject.FindProperty("m_uiBlurSettings");
@@ -73,6 +77,7 @@ namespace SoFunny.Rendering.Funnyland {
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             }
             EditorGUILayout.PropertyField(m_OccluderStencilLayerMask, Styles.OccluderStencilLayerMask);
+            EditorGUILayout.PropertyField(m_OutlineStencilLayerMask, Styles.OutlineStencilLayerMask);
             EditorGUILayout.PropertyField(m_EnableUIBlur, Styles.EnableUIBgBlur);
 
             if (m_EnableUIBlur.boolValue) {

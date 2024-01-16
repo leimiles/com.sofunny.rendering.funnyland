@@ -1,242 +1,176 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace SoFunny.Rendering.Funnyland {
     [DisallowMultipleComponent]
     public class EffectsTrigger : MonoBehaviour {
-        public enum OutlineType : byte {
-            Teammate = 0,
-            Danger = 1,
-            Flag = 2,
+        [SerializeField] private AttackedParam attack;
+        [SerializeField] private OutlineParam outline;
+        [SerializeField] private OccludeeParam occludee;
+
+        private Renderer[] m_Renderers;
+        private Material m_EffectMaterial;
+
+        private Renderer[] renderers {
+            get {
+                if (m_Renderers == null || m_Renderers.Length == 0) {
+                    m_Renderers = gameObject.GetComponentsInChildren<Renderer>();
+                }
+                return m_Renderers;
+            }    
         }
 
-        public enum OccludeeType : byte {
-            Teammate = 0,
-            Danger = 1,
-            Flag = 2,
+        private Material effectMaterial {
+            get {
+                if (m_EffectMaterial == null) {
+                    m_EffectMaterial = new Material(Shader.Find("Hidden/SoFunny/Funnyland/FunnyEffects"));
+                }
+
+                return m_EffectMaterial;
+            }   
         }
-
-        // 受击
-        [Range(0.0f, 1.0f)] public float attackedColorIntensity = 0.0f;
-        public Color attackedColor = new(1f, 0.12f, 0.15f);
-        [SerializeField] private OutlineParam[] outlines;
-        [SerializeField] private OccludeeParam[] occludees;
-
-        private Renderer[] renderers;
-
-        public bool IsActive { get; private set; }
-
-        private readonly List<OutlineState> outlineStates = new((byte)OutlineType.Flag);
-        private readonly List<OccludeeState> occludeeStates = new((byte)OccludeeType.Flag);
-
         
-        // Test
-        // 仅仅用来调试效果调用, 在PCRetime时可以用Update, 但是当打包之后需要预热管线或者将Update函数改为Render后的函数调用
-        // 原因是我们在new EffectsPass时进行EffectsManager.Init()初始化状态
-        // private void Update() {
-        //     OutlineState outlineState;
-        //     outlineState.type = OutlineType.Teammate;
-        //     outlineState.isActive = true;
-        //     outlineState.priority = 0;
-        //     SetOutlineState(outlineState);
-        //
-        //     OccludeeState occludeeState;
-        //     occludeeState.priority = 0;
-        //     occludeeState.type = OccludeeType.Teammate;
-        //     occludeeState.isActive = true;
-        //     SetOccludeeState(occludeeState);
-        // }
-        //
-        // private void OnDisable() {
-        //     Stop();
+        // 测试
+        // private void Start() {
+        //     SetAttackedState(true);
+        //     SetOutlineState(true);
+        //     SetOccludeeState(true);
         // }
 
-        public void SetOutlineState(OutlineState input) {
-            var exist = false;
-            var dirty = false;
-
-            for (var i = 0; i < outlineStates.Count; i++) {
-                var outlineState = outlineStates[i];
-
-                if (outlineState.type == input.type) {
-                    if (!outlineState.Equals(input)) {
-                        outlineStates[i] = input;
-                        dirty = true;
-                    }
-
-                    exist = true;
-                    break;
-                }
-            }
-
-            if (!exist) {
-                outlineStates.Add(input);
-                dirty = true;
-            }
-
-            if (dirty) {
-                outlineStates.Sort((x, y) => {
-                    if (x.isActive && !y.isActive) {
-                        return -1;
-                    }
-
-                    if (!x.isActive && y.isActive) {
-                        return 1;
-                    }
-
-                    return -x.priority.CompareTo(y.priority);
-                });
-            }
-
-            if (outlineStates[0].isActive || occludeeStates.Count > 0 && occludeeStates[0].isActive) {
-                Begin();
+        public void SetAttackedState(bool isAttackedActive) {
+            if (isAttackedActive && attack.intensity > 0) {
+                attack.renderers = renderers;
+                attack.material = effectMaterial;
+                attack.isActive = isAttackedActive;
+                EffectsManager.AddAttackedTrigger(attack);
             } else {
-                Stop();
+                attack.isActive = isAttackedActive;
+                EffectsManager.RemoveAttackedTrigger(attack);
             }
         }
-
-        public (bool, float, Color) GetOutlineParam() {
-            if (outlineStates.Count > 0) {
-                var state = outlineStates[0];
-
-                if (state.isActive) {
-                    foreach (var outline in outlines) {
-                        if (outline.type == state.type) {
-                            return (true, outline.with, outline.color);
-                        }
-                    }
-                }
+        
+        public void SetAttackedParam(bool isAttackedActive, float intensity, Color attackColor) {
+            attack.intensity = intensity;
+            attack.color = attackColor;
+            if (isAttackedActive) {
+                SetAttackedState(isAttackedActive);
             }
-
-            return (false, 0f, Color.black);
         }
-
-        public void SetOccludeeState(OccludeeState input) {
-            var exist = false;
-            var dirty = false;
-
-            for (var i = 0; i < occludeeStates.Count; i++) {
-                var occludeeState = occludeeStates[i];
-
-                if (occludeeState.type == input.type) {
-                    if (!occludeeState.Equals(input)) {
-                        occludeeStates[i] = input;
-                        dirty = true;
-                    }
-
-                    exist = true;
-                    break;
-                }
-            }
-
-            if (!exist) {
-                occludeeStates.Add(input);
-                dirty = true;
-            }
-
-            if (dirty) {
-                occludeeStates.Sort((x, y) => {
-                    if (x.isActive && !y.isActive) {
-                        return -1;
-                    }
-
-                    if (!x.isActive && y.isActive) {
-                        return 1;
-                    }
-
-                    return -x.priority.CompareTo(y.priority);
-                });
-            }
-
-            if (occludeeStates[0].isActive || outlineStates.Count > 0 && outlineStates[0].isActive) {
-                Begin();
+        
+        public void SetOutlineState(bool isOutlineActive) {
+            if (isOutlineActive && outline.width > 0) {
+                outline.renderers = renderers;
+                outline.material = effectMaterial;
+                outline.isActive = isOutlineActive;
+                EffectsManager.AddOutlineTrigger(outline);
             } else {
-                Stop();
+                outline.isActive = isOutlineActive;
+                EffectsManager.RemoveOutlineTrigger(outline);
             }
         }
-
-        public (bool, float, Color) GetOccludeeParam() {
-            if (occludeeStates.Count > 0) {
-                var state = occludeeStates[0];
-
-                if (state.isActive) {
-                    foreach (var occludee in occludees) {
-                        if (occludee.type == state.type) {
-                            return (true, occludee.intensity, occludee.color);
-                        }
-                    }
-                }
-            }
-
-            return (false, 0f, Color.black);
-        }
-
-        public void Begin() {
-            if (IsActive) {
-                return;
-            }
-
-            IsActive = true;
-            renderers = gameObject.GetComponentsInChildren<Renderer>();
-
-            if (EffectsManager.state) {
-                EffectsManager.AddTrigger(this);
+        
+        public void SetOutlineParam(bool isOutlineActive, float width, Color outlineColor) {
+            outline.width = width;
+            outline.color = outlineColor;
+            if (isOutlineActive) {
+                SetOutlineState(isOutlineActive);
             }
         }
-
-        public void Stop() {
-            if (!IsActive) {
-                return;
-            }
-
-            IsActive = false;
-
-            if (EffectsManager.state && EffectsManager.Exists(this)) {
-                EffectsManager.RemoveTrigger(this);
+        
+        public void SetOccludeeState(bool isOccludeeActive) {
+            if (isOccludeeActive && occludee.intensity > 0) {
+                occludee.renderers = renderers;
+                occludee.material = effectMaterial;
+                occludee.isActive = isOccludeeActive;
+                EffectsManager.AddOccludeeTrigger(occludee);
+            } else {
+                occludee.isActive = isOccludeeActive;
+                EffectsManager.RemoveOccludeeTrigger(occludee);
             }
         }
-
-        public Renderer[] GetRenderers() {
-            return renderers;
+        
+        public void SetOccludeeParam(bool isOccludeeActive, float intensity, Color outlineColor) {
+            occludee.intensity = intensity;
+            occludee.color = outlineColor;
+            if (isOccludeeActive) {
+                SetOccludeeState(isOccludeeActive);
+            }
         }
 
         private void OnDestroy() {
-            Stop();
+            Destroy(m_EffectMaterial);
+            if(attack.material != null)             
+                Destroy(attack.material);
+            if(outline.material != null)             
+                Destroy(outline.material);
+            if(occludee.material != null)             
+                Destroy(occludee.material);
+
+            EffectsManager.RemoveAttackedTrigger(attack);
+            EffectsManager.RemoveOutlineTrigger(outline);
+            EffectsManager.RemoveOccludeeTrigger(occludee);
         }
-
-        public struct OutlineState : IEquatable<OutlineState> {
-            public OutlineType type;
-            public bool isActive;
-            public byte priority;
-
-            public bool Equals(OutlineState other) {
-                return type == other.type && isActive == other.isActive && priority == other.priority;
+    }
+    
+    [System.Serializable]
+    public class EffectParam {
+        [HideInInspector]public bool isActive = false;
+        [HideInInspector]public Material material;
+        [HideInInspector]public Renderer[] renderers;
+        
+        public Renderer[] GetRenderers() {
+            return renderers;
+        }
+        
+        public Material GetMaterial() {
+            if (material == null) {
+                material = new Material(Shader.Find("Hidden/SoFunny/Funnyland/FunnyEffects"));
             }
+            return material;
         }
+    }
+    
+    [System.Serializable]
+    public class AttackedParam : EffectParam{
+        [Range(0f, 1f)] public float intensity;
+        [ColorUsageAttribute(true, true)] public Color color;
 
-        public struct OccludeeState : IEquatable<OccludeeState> {
-            public OccludeeType type;
-            public bool isActive;
-            public byte priority;
-
-            public bool Equals(OccludeeState other) {
-                return type == other.type && isActive == other.isActive && priority == other.priority;
+        public (bool, float, Color) GetParams() {
+            if (this.isActive) {
+                return (true, this.intensity, this.color);
             }
-        }
 
-        [System.Serializable]
-        public struct OutlineParam {
-            public OutlineType type;
-            [Range(0f, 5.0f)] public float with;
-            [ColorUsageAttribute(true, true)] public Color color;
+            return (false, 0f, Color.black);
         }
+    }
+    
+    [System.Serializable]
+    public class OutlineParam : EffectParam{
+        [Range(0f, 5.0f)] public float width;
+        [ColorUsageAttribute(true, true)] public Color color;
+        
+        public (bool, float, Color) GetParams() {
+            if (this.isActive) {
+                return (true, this.width, this.color);
+            }
 
-        [System.Serializable]
-        public struct OccludeeParam {
-            public OccludeeType type;
-            [Range(0f, 1f)] public float intensity;
-            [ColorUsageAttribute(true, true)] public Color color;
+            return (false, 0f, Color.black);
+        }
+    }
+
+    [System.Serializable]
+    public class OccludeeParam : EffectParam{
+        [Range(0f, 1f)] public float intensity;
+        [ColorUsageAttribute(true, true)] public Color color;
+        
+        public (bool, float, Color) GetParams() {
+            if (this.isActive) {
+                return (true, this.intensity, this.color);
+            }
+
+            return (false, 0f, Color.black);
         }
     }
 }
