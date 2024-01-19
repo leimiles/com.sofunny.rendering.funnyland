@@ -18,31 +18,34 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
     #ifndef HAVE_VFX_MODIFICATION
-        #pragma multi_compile _ DOTS_INSTANCING_ON
-        #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
+    #pragma multi_compile _ DOTS_INSTANCING_ON
+    #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
             #pragma target 3.5 DOTS_INSTANCING_ON
-        #else
-            #pragma target 4.5 DOTS_INSTANCING_ON
-        #endif
+    #else
+    #pragma target 4.5 DOTS_INSTANCING_ON
     #endif
-    
+    #endif
+
     CBUFFER_START(UnityPerMaterial)
-        half4 _Color;
-        half _AttackedColorIntensity;
-        half _OccludeeColorIntensity;
-        half4 _OccludeeColor;
-        half _OutlineWidth;
-        half4 _OutlineColor;
-        float4 _MeshCenter;
+    half4 _Color;
+    half _AttackedColorIntensity;
+    half _OccludeeColorIntensity;
+    half4 _OccludeeColor;
+    half _OutlineWidth;
+    half4 _OutlineColor;
+    float4 _MeshCenter;
     CBUFFER_END
-    TEXTURE2D(_SelectOutlineTex);                SAMPLER(sampler_SelectOutlineTex);
+    TEXTURE2D(_SelectOutlineTex);
+    SAMPLER(sampler_SelectOutlineTex);
     float4 _SelectOutlineTex_TexelSize;
-    
     ENDHLSL
 
     SubShader
     {
-        Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Overlay" "Queue" = "Overlay" }
+        Tags
+        {
+            "RenderPipeline" = "UniversalPipeline" "RenderType" = "Overlay" "Queue" = "Overlay"
+        }
 
         Pass
         {
@@ -50,17 +53,16 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Name "Attacked"
 
             HLSLPROGRAM
-
             #pragma vertex vert
             #pragma fragment frag
-            
+
             struct attributes
             {
                 float3 positionOS : POSITION;
                 half3 normalOS : NORMAL;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
-            
+
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
@@ -89,7 +91,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 #else
                 o.positionCS.z -= 0.0001;
                 #endif
-                
+
 
                 VertexNormalInputs vni = GetVertexNormalInputs(input.normalOS);
                 o.normalWS = vni.normalWS;
@@ -106,7 +108,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             }
             ENDHLSL
         }
-        
+
         Pass
         {
             Blend One Zero
@@ -121,7 +123,6 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             ZTest Greater
 
             HLSLPROGRAM
-
             #pragma vertex vert
             #pragma fragment frag
 
@@ -132,7 +133,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 half3 normalOS : NORMAL;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
-            
+
             struct varyings
             {
                 float4 positionCS : SV_POSITION;
@@ -172,16 +173,15 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Name "Outline"
 
             Cull Off
-            ZTest Off
-            
+            ZTest On
+
             Stencil
             {
                 Ref 4
                 Comp NotEqual
             }
-            
+
             HLSLPROGRAM
-            
             #pragma vertex vert
             #pragma fragment frag
 
@@ -211,6 +211,13 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 input.positionOS += input.normalOS * _OutlineWidth / 100;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
+                
+                #if UNITY_UV_STARTS_AT_TOP
+                o.positionCS.z += 0.0001;
+                #else
+                o.positionCS.z -= 0.0001;
+                #endif
+
                 return o;
             }
 
@@ -222,24 +229,23 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             }
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "Occluder Stencil"
-            
+
             Cull Back
             ZTest On
             ColorMask 0
-            
+
             Stencil
             {
-                 Ref 3
-                 Comp Always
-                 Pass Replace
+                Ref 3
+                Comp Always
+                Pass Replace
             }
-            
+
             HLSLPROGRAM
-            
             #pragma vertex vert
             #pragma fragment frag
 
@@ -277,26 +283,25 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 return 0;
             }
             ENDHLSL
-            
+
         }
-        
+
         Pass
         {
             Name "Outline Stencil"
-            
+
             Cull Back
-            ZTest Off
+            ZTest On
             ColorMask 0
-            
+
             Stencil
             {
-                 Ref 4
-                 Comp Always
-                 Pass Replace
+                Ref 4
+                Comp Always
+                Pass Replace
             }
-            
+
             HLSLPROGRAM
-            
             #pragma vertex vert
             #pragma fragment frag
 
@@ -334,10 +339,10 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 return 0;
             }
             ENDHLSL
-            
+
         }
-        
-        
+
+
         Pass
         {
             Name "ScreenOutline"
@@ -346,10 +351,9 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
-
             #pragma vertex vert
             #pragma fragment frag
-            
+
             #if SHADER_API_GLES
             struct Attributes
             {
@@ -368,24 +372,24 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float2 texcoord[9]   : TEXCOORD0;
+                float2 texcoord[9] : TEXCOORD0;
 
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings vert(Attributes input)
             {
-                 Varyings output;
+                Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                
-            #if SHADER_API_GLES
+
+                #if SHADER_API_GLES
                 float4 pos = input.positionOS;
                 float2 uv  = input.uv;
-            #else
+                #else
                 float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
-                float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
-            #endif
+                float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                #endif
 
                 output.positionCS = pos;
                 output.texcoord[0] = uv + _SelectOutlineTex_TexelSize.xy * _OutlineWidth * float2(-1, -1);
@@ -403,27 +407,27 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             half Sobel(Varyings o)
             {
                 const half GX[9] = {
-                   -1, -2, -1,
+                    -1, -2, -1,
                     0, 0, 0,
                     1, 2, 1
                 };
                 const half GY[9] = {
-                   -1, 0, 1,
+                    -1, 0, 1,
                     -2, 0, 2,
                     -1, 0, 1
                 };
                 half texColor;
                 half gX;
                 half gY;
-                for(int i = 0; i < 9; i++)
+                for (int i = 0; i < 9; i++)
                 {
-                    texColor = SAMPLE_TEXTURE2D(_SelectOutlineTex,sampler_SelectOutlineTex, o.texcoord[i]).r;
+                    texColor = SAMPLE_TEXTURE2D(_SelectOutlineTex, sampler_SelectOutlineTex, o.texcoord[i]).r;
                     gX += texColor * GX[i];
                     gY += texColor * GY[i];
                 }
                 return 1 - abs(gX) - abs(gY);
             }
-            
+
             float4 frag(Varyings i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
