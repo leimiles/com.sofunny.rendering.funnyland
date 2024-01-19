@@ -7,10 +7,13 @@ using UnityEditor.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace SoFunny.Rendering.Funnyland {
+namespace SoFunny.Rendering.Funnyland
+{
     [CustomEditor(typeof(FunnylandMobileRendererData), true)]
-    public class FunnylandMobileRendererDataEditor : ScriptableRendererDataEditor {
-        private static class Styles {
+    public class FunnylandMobileRendererDataEditor : ScriptableRendererDataEditor
+    {
+        private static class Styles
+        {
             public static readonly GUIContent LightModes = EditorGUIUtility.TrTextContent("LightModes: ", "允许渲染的 shader tag light mode.");
             public static readonly GUIContent GraphicQuality = EditorGUIUtility.TrTextContent("GraphicQuality: ", "画质分级");
             public static readonly GUIContent FrameLimit = EditorGUIUtility.TrTextContent("帧率锁定: ", "当前的帧率 ultra = 60, standard = 30.");
@@ -43,7 +46,8 @@ namespace SoFunny.Rendering.Funnyland {
         private FunnylandMobileRendererData _funnylandMobileRendererData;
 
         //List<VolumeComponentEditor> m_Editors = new List<VolumeComponentEditor>();
-        private void OnEnable() {
+        private void OnEnable()
+        {
             _funnylandMobileRendererData = target as FunnylandMobileRendererData;
             m_LightModes = serializedObject.FindProperty("m_ShaderTagLightModes");
             m_GraphicQuality = serializedObject.FindProperty("m_GraphicQuality");
@@ -60,19 +64,21 @@ namespace SoFunny.Rendering.Funnyland {
             m_uiBlurMaxIterations = uiBlurSettings.FindPropertyRelative("maxIterations");
             m_uiBlurRadius = uiBlurSettings.FindPropertyRelative("blurRadius");
         }
-        public override void OnInspectorGUI() {
+        public override void OnInspectorGUI()
+        {
             serializedObject.Update();
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(m_LightModes, Styles.LightModes);
             EditorGUILayout.PropertyField(m_GraphicQuality, Styles.GraphicQuality);
-            
+
             EditorGUILayout.PropertyField(m_FrameLimit, Styles.FrameLimit);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_PostProcessType, Styles.PostProssType);
-            if (EditorGUI.EndChangeCheck()) {
-                if(m_PostProcessData.objectReferenceValue == null)
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (m_PostProcessData.objectReferenceValue == null)
                     // postProcessData 默认Data
                     m_PostProcessData.objectReferenceValue = PostProcessData.GetDefaultPostProcessData();
             }
@@ -80,7 +86,8 @@ namespace SoFunny.Rendering.Funnyland {
             EditorGUILayout.PropertyField(m_OutlineStencilLayerMask, Styles.OutlineStencilLayerMask);
             EditorGUILayout.PropertyField(m_EnableUIBlur, Styles.EnableUIBgBlur);
 
-            if (m_EnableUIBlur.boolValue) {
+            if (m_EnableUIBlur.boolValue)
+            {
                 EditorGUI.indentLevel += 2;
                 EditorGUILayout.PropertyField(m_uiBlurMaxIterations, Styles.UIBlurMaxIterations);
                 EditorGUILayout.PropertyField(m_uiBlurRadius, Styles.UIBlurRadius);
@@ -88,7 +95,8 @@ namespace SoFunny.Rendering.Funnyland {
             }
 
             isDebug = EditorGUILayout.Foldout(isDebug, "Debug");
-            if (isDebug) {
+            if (isDebug)
+            {
                 EditorGUILayout.PropertyField(m_Histogram, Styles.Histogram);
                 EditorGUILayout.PropertyField(m_DebugMode, Styles.Debug);
             }
@@ -99,15 +107,32 @@ namespace SoFunny.Rendering.Funnyland {
             CheckNullData();
         }
 
-        private void CheckNullData() {
-            if (_funnylandMobileRendererData == null || _funnylandMobileRendererData.shaderResources == null) {
+        private void CheckNullData()
+        {
+            if (_funnylandMobileRendererData == null || _funnylandMobileRendererData.shaderResources == null)
+            {
                 return;
             }
 
-            if (_funnylandMobileRendererData.shaderResources.CheckHasNull()) {
+            if (_funnylandMobileRendererData.shaderResources.CheckHasNull())
+            {
                 ResourceReloader.TryReloadAllNullIn(_funnylandMobileRendererData, UniversalRenderPipelineAsset.packagePath);
             }
+
+            if (_funnylandMobileRendererData.m_RendererFeatures.Count > 0)
+            {
+                int count = _funnylandMobileRendererData.m_RendererFeatures.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (_funnylandMobileRendererData.m_RendererFeatures[i] == null)
+                    {
+                        _funnylandMobileRendererData.m_RendererFeatures.RemoveAt(i);
+                        Debug.LogWarning("one of the render features is missing, it has been removed from the list.");
+                    }
+                }
+            }
+
         }
-        
+
     }
 }
