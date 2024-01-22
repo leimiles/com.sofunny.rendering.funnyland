@@ -18,22 +18,22 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
     #ifndef HAVE_VFX_MODIFICATION
-    #pragma multi_compile _ DOTS_INSTANCING_ON
-    #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
+        #pragma multi_compile _ DOTS_INSTANCING_ON
+        #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
             #pragma target 3.5 DOTS_INSTANCING_ON
-    #else
-    #pragma target 4.5 DOTS_INSTANCING_ON
-    #endif
+        #else
+            #pragma target 4.5 DOTS_INSTANCING_ON
+        #endif
     #endif
 
     CBUFFER_START(UnityPerMaterial)
-    half4 _Color;
-    half _AttackedColorIntensity;
-    half _OccludeeColorIntensity;
-    half4 _OccludeeColor;
-    half _OutlineWidth;
-    half4 _OutlineColor;
-    float4 _MeshCenter;
+        half4 _Color;
+        half _AttackedColorIntensity;
+        half _OccludeeColorIntensity;
+        half4 _OccludeeColor;
+        half _OutlineWidth;
+        half4 _OutlineColor;
+        float4 _MeshCenter;
     CBUFFER_END
     TEXTURE2D(_SelectOutlineTex);
     SAMPLER(sampler_SelectOutlineTex);
@@ -42,10 +42,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
 
     SubShader
     {
-        Tags
-        {
-            "RenderPipeline" = "UniversalPipeline" "RenderType" = "Overlay" "Queue" = "Overlay"
-        }
+        Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Overlay" "Queue" = "Overlay" }
 
         Pass
         {
@@ -87,9 +84,9 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 o.positionCS = vpi.positionCS;
 
                 #if UNITY_UV_STARTS_AT_TOP
-                o.positionCS.z += 0.0001;
+                    o.positionCS.z += 0.0001;
                 #else
-                o.positionCS.z -= 0.0001;
+                    o.positionCS.z -= 0.0001;
                 #endif
 
 
@@ -211,11 +208,11 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 input.positionOS += input.normalOS * _OutlineWidth / 100;
                 VertexPositionInputs vpi = GetVertexPositionInputs(input.positionOS);
                 o.positionCS = vpi.positionCS;
-                
+
                 #if UNITY_UV_STARTS_AT_TOP
-                o.positionCS.z += 0.0001;
+                    o.positionCS.z += 0.0001;
                 #else
-                o.positionCS.z -= 0.0001;
+                    o.positionCS.z -= 0.0001;
                 #endif
 
                 return o;
@@ -283,7 +280,6 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 return 0;
             }
             ENDHLSL
-
         }
 
         Pass
@@ -291,7 +287,7 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             Name "Outline Stencil"
 
             Cull Back
-            ZTest On
+            ZTest Off
             ColorMask 0
 
             Stencil
@@ -339,7 +335,6 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 return 0;
             }
             ENDHLSL
-
         }
 
 
@@ -355,18 +350,18 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             #pragma fragment frag
 
             #if SHADER_API_GLES
-            struct Attributes
-            {
-                float4 positionOS       : POSITION;
-                float2 uv               : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
+                struct Attributes
+                {
+                    float4 positionOS : POSITION;
+                    float2 uv : TEXCOORD0;
+                    UNITY_VERTEX_INPUT_INSTANCE_ID
+                };
             #else
-            struct Attributes
-            {
-                uint vertexID : SV_VertexID;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
+                struct Attributes
+                {
+                    uint vertexID : SV_VertexID;
+                    UNITY_VERTEX_INPUT_INSTANCE_ID
+                };
             #endif
 
             struct Varyings
@@ -384,11 +379,11 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 #if SHADER_API_GLES
-                float4 pos = input.positionOS;
-                float2 uv  = input.uv;
+                    float4 pos = input.positionOS;
+                    float2 uv = input.uv;
                 #else
-                float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
-                float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+                    float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
                 #endif
 
                 output.positionCS = pos;
@@ -407,14 +402,14 @@ Shader "Hidden/SoFunny/Funnyland/FunnyEffects"
             half Sobel(Varyings o)
             {
                 const half GX[9] = {
-                    -1, -2, -1,
+                    - 1, -2, -1,
                     0, 0, 0,
                     1, 2, 1
                 };
                 const half GY[9] = {
-                    -1, 0, 1,
-                    -2, 0, 2,
-                    -1, 0, 1
+                    - 1, 0, 1,
+                    - 2, 0, 2,
+                    - 1, 0, 1
                 };
                 half texColor;
                 half gX;
