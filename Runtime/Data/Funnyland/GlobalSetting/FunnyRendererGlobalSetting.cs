@@ -15,15 +15,15 @@ namespace SoFunny.Rendering.Funnyland
         public static void SetFeatureActive(int index,bool active) {
             ScriptableRenderer renderer = GetRenderer();
             if (renderer is FunnylandMobileRenderer) {
-                if (index < renderer.rendererFeatures.Count) {
+                if (index >= 0 && index < renderer.rendererFeatures.Count) {
                     renderer.rendererFeatures[index].SetActive(active);   
                 }
                 else {
-                    Debug.Log("索引超出数组界限");
+                    // Debug.Log("索引超出数组界限");
                 }
             }
             else {
-                Debug.Log("非FRP renderer 不支持此操作");
+                // Debug.Log("非FRP renderer 不支持此操作");
             }
         }
     }
