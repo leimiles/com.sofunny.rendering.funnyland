@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
     /// When set to <c>Off</c> option will be disabled regardless of what is set on the pipeline asset.
     /// When set to <c>On</c> option will be enabled regardless of what is set on the pipeline asset.
     /// When set to <c>UsePipelineSetting</c> value set in the <see cref="UniversalRenderPipelineAsset"/>.
-    /// </summary>
+    /// </summary> 
     public enum CameraOverrideOption
     {
         /// <summary>
@@ -815,7 +815,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnDestroy()
         {
-            scriptableRenderer?.ReleaseRenderTargets();
+            if (camera.cameraType != CameraType.SceneView )
+                scriptableRenderer?.ReleaseRenderTargets();
             m_Camera.DestroyVolumeStack(this);
             m_TaaPersistentData?.DeallocateTargets();
         }
