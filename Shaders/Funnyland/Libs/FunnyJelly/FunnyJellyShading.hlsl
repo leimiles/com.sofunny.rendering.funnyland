@@ -144,6 +144,7 @@ half GetShadowArea(Light mainLight, half3 normalWS)
     half NdotL = saturate(dot(normalWS, mainLight.direction));
     half shadowArea = (mainLight.shadowAttenuation * mainLight.distanceAttenuation) * NdotL;
     shadowArea = smoothstep(0.0, 0.1, shadowArea);
+    //wangxiaolong:修复没有平行光时，渲染变黑的问题
     shadowArea = LerpWhiteTo(shadowArea, step(0.001, maxMainLightColorChannel));
     return shadowArea;
 }
