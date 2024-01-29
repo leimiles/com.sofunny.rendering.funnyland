@@ -90,14 +90,6 @@ void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData f
     debugSurfaceData.clearCoatSmoothness = funnySurfaceData.clearCoatSmoothness;
 }
 
-half GetShadowArea(Light mainLight, half3 normalWS)
-{
-    half NdotL = saturate(dot(normalWS, mainLight.direction));
-    half shadowArea = (mainLight.shadowAttenuation * mainLight.distanceAttenuation) * NdotL;
-    shadowArea = smoothstep(0.0, 0.1, shadowArea);
-    return shadowArea;
-}
-
 half4 FunnyFragmentBlinnPhong(InputData inputData, FunnySurfaceData surfaceData)
 {
     #if defined(DEBUG_DISPLAY)

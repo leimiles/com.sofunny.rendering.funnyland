@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnySurfaceData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyCommon.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;

@@ -138,14 +138,6 @@ void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnyJellySurfaceD
     debugSurfaceData.clearCoatSmoothness = funnySurfaceData.clearCoatSmoothness;
 }
 
-half GetShadowArea(Light mainLight, half3 normalWS)
-{
-    half NdotL = saturate(dot(normalWS, mainLight.direction));
-    half shadowArea = (mainLight.shadowAttenuation * mainLight.distanceAttenuation) * NdotL;
-    shadowArea = smoothstep(0.0, 0.1, shadowArea);
-    return shadowArea;
-}
-
 #ifdef _FRP_HIGH_SHADER_QUALITY
 half4 SamplerBgTexture(half2 screenUV, half transmission)
 {
