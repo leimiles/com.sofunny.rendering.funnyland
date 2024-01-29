@@ -815,6 +815,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnDestroy()
         {
+            // URP 14.0.9 中加入了这句判断，没有这句判断会导致在sceneview中搜索报错
             if (camera.cameraType != CameraType.SceneView )
                 scriptableRenderer?.ReleaseRenderTargets();
             m_Camera.DestroyVolumeStack(this);
