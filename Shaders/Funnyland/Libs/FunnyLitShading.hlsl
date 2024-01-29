@@ -92,9 +92,11 @@ void FillDebugSurfaceData(inout SurfaceData debugSurfaceData, FunnySurfaceData f
 
 half GetShadowArea(Light mainLight, half3 normalWS)
 {
+    half maxMainLightColorChannel = max(max(mainLight.color.r, mainLight.color.g), mainLight.color.b); 
     half NdotL = saturate(dot(normalWS, mainLight.direction));
     half shadowArea = (mainLight.shadowAttenuation * mainLight.distanceAttenuation) * NdotL;
     shadowArea = smoothstep(0.0, 0.1, shadowArea);
+    shadowArea = LerpWhiteTo(shadowArea, step(0.001, maxMainLightColorChannel));
     return shadowArea;
 }
 
