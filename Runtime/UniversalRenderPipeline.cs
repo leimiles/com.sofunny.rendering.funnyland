@@ -1197,7 +1197,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.renderType = additionalCameraData.renderType;
                 cameraData.clearDepth = (additionalCameraData.renderType != CameraRenderType.Base) ? additionalCameraData.clearDepth : true;
-                cameraData.postProcessEnabled = additionalCameraData.renderPostProcessing;
+                // cameraData.postProcessEnabled = additionalCameraData.renderPostProcessing;
+                // 画质分级
+                cameraData.postProcessEnabled = asset.supportPost;  //因为不再使用additionalCameraData的postProcessEnabled，所以直接读取asset上的supportPost
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
@@ -1219,8 +1221,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.screenCoordScaleBias = Vector2.one;
             }
 
-            // 画质分级
-            cameraData.postProcessEnabled = asset.supportPost;
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
