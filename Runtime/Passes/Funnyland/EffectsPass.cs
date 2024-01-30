@@ -45,7 +45,7 @@ namespace SoFunny.Rendering.Funnyland {
             using (new ProfilingScope(cmd, m_ProfilingSampler)) {
                 DrawRenderersByAttacked(ref cmd, 0);
                 
-                if (EffectsManager.OutlineParams != null && EffectsManager.OutlineParams.Count > 0) {
+                if ((EffectsManager.OutlineParams != null && EffectsManager.OutlineParams.Count > 0) || (EffectsManager.OccludeeParams != null && EffectsManager.OccludeeParams.Count > 0)) {
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                     DrawStencil(context, ref renderingData, SortingCriteria.None, m_OutlineFiltering, 4);
