@@ -3,35 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace SoFunny.Rendering.Funnyland {
+namespace SoFunny.Rendering.Funnyland
+{
     [DisallowMultipleComponent]
-    public class EffectsTrigger : MonoBehaviour {
+    public class EffectsTrigger : MonoBehaviour
+    {
         [SerializeField] private AttackedParam attack;
         [SerializeField] private OutlineParam outline;
         [SerializeField] private OccludeeParam occludee;
 
-        private Renderer[] m_Renderers;
         private Material m_EffectMaterial;
 
-        private Renderer[] renderers {
-            get {
-                if (m_Renderers == null || m_Renderers.Length == 0) {
-                    m_Renderers = gameObject.GetComponentsInChildren<Renderer>();
-                }
-                return m_Renderers;
-            }    
-        }
-
-        private Material effectMaterial {
-            get {
-                if (m_EffectMaterial == null) {
+        private Material effectMaterial
+        {
+            get
+            {
+                if (m_EffectMaterial == null)
+                {
                     m_EffectMaterial = new Material(Shader.Find("Hidden/SoFunny/Funnyland/FunnyEffects"));
                 }
 
                 return m_EffectMaterial;
-            }   
+            }
         }
-        
+
         // 测试
         // private void Start() {
         //     SetAttackedState(true);
@@ -39,73 +34,92 @@ namespace SoFunny.Rendering.Funnyland {
         //     SetOccludeeState(true);
         // }
 
-        public void SetAttackedState(bool isAttackedActive) {
-            if (isAttackedActive && attack.intensity > 0) {
-                attack.renderers = renderers;
+        public void SetAttackedState(bool isAttackedActive)
+        {
+            if (isAttackedActive && attack.intensity > 0)
+            {
+                attack.renderers = gameObject.GetComponentsInChildren<Renderer>();
                 attack.material = effectMaterial;
                 attack.isActive = isAttackedActive;
                 EffectsManager.AddAttackedTrigger(attack);
-            } else {
+            }
+            else
+            {
                 attack.isActive = isAttackedActive;
                 EffectsManager.RemoveAttackedTrigger(attack);
             }
         }
-        
-        public void SetAttackedParam(bool isAttackedActive, float intensity, Color attackColor) {
+
+        public void SetAttackedParam(bool isAttackedActive, float intensity, Color attackColor)
+        {
             attack.intensity = intensity;
             attack.color = attackColor;
-            if (isAttackedActive) {
+            if (isAttackedActive)
+            {
                 SetAttackedState(isAttackedActive);
             }
         }
-        
-        public void SetOutlineState(bool isOutlineActive) {
-            if (isOutlineActive && outline.width > 0) {
-                outline.renderers = renderers;
+
+        public void SetOutlineState(bool isOutlineActive)
+        {
+            if (isOutlineActive && outline.width > 0)
+            {
+                outline.renderers = gameObject.GetComponentsInChildren<Renderer>(); ;
                 outline.material = effectMaterial;
                 outline.isActive = isOutlineActive;
                 EffectsManager.AddOutlineTrigger(outline);
-            } else {
+            }
+            else
+            {
                 outline.isActive = isOutlineActive;
                 EffectsManager.RemoveOutlineTrigger(outline);
             }
         }
-        
-        public void SetOutlineParam(bool isOutlineActive, float width, Color outlineColor) {
+
+        public void SetOutlineParam(bool isOutlineActive, float width, Color outlineColor)
+        {
             outline.width = width;
             outline.color = outlineColor;
-            if (isOutlineActive) {
+            if (isOutlineActive)
+            {
                 SetOutlineState(isOutlineActive);
             }
         }
-        
-        public void SetOccludeeState(bool isOccludeeActive) {
-            if (isOccludeeActive && occludee.intensity > 0) {
-                occludee.renderers = renderers;
+
+        public void SetOccludeeState(bool isOccludeeActive)
+        {
+            if (isOccludeeActive && occludee.intensity > 0)
+            {
+                occludee.renderers = gameObject.GetComponentsInChildren<Renderer>(); ;
                 occludee.material = effectMaterial;
                 occludee.isActive = isOccludeeActive;
                 EffectsManager.AddOccludeeTrigger(occludee);
-            } else {
+            }
+            else
+            {
                 occludee.isActive = isOccludeeActive;
                 EffectsManager.RemoveOccludeeTrigger(occludee);
             }
         }
-        
-        public void SetOccludeeParam(bool isOccludeeActive, float intensity, Color outlineColor) {
+
+        public void SetOccludeeParam(bool isOccludeeActive, float intensity, Color outlineColor)
+        {
             occludee.intensity = intensity;
             occludee.color = outlineColor;
-            if (isOccludeeActive) {
+            if (isOccludeeActive)
+            {
                 SetOccludeeState(isOccludeeActive);
             }
         }
 
-        private void OnDestroy() {
+        private void OnDestroy()
+        {
             Destroy(m_EffectMaterial);
-            if(attack.material != null)             
+            if (attack.material != null)
                 Destroy(attack.material);
-            if(outline.material != null)             
+            if (outline.material != null)
                 Destroy(outline.material);
-            if(occludee.material != null)             
+            if (occludee.material != null)
                 Destroy(occludee.material);
 
             EffectsManager.RemoveAttackedTrigger(attack);
@@ -113,46 +127,56 @@ namespace SoFunny.Rendering.Funnyland {
             EffectsManager.RemoveOccludeeTrigger(occludee);
         }
     }
-    
+
     [System.Serializable]
-    public class EffectParam {
-        [HideInInspector]public bool isActive = false;
-        [HideInInspector]public Material material;
-        [HideInInspector]public Renderer[] renderers;
-        
-        public Renderer[] GetRenderers() {
+    public class EffectParam
+    {
+        [HideInInspector] public bool isActive = false;
+        [HideInInspector] public Material material;
+        [HideInInspector] public Renderer[] renderers;
+
+        public Renderer[] GetRenderers()
+        {
             return renderers;
         }
-        
-        public Material GetMaterial() {
-            if (material == null) {
+
+        public Material GetMaterial()
+        {
+            if (material == null)
+            {
                 material = new Material(Shader.Find("Hidden/SoFunny/Funnyland/FunnyEffects"));
             }
             return material;
         }
     }
-    
+
     [System.Serializable]
-    public class AttackedParam : EffectParam{
+    public class AttackedParam : EffectParam
+    {
         [Range(0f, 1f)] public float intensity;
         [ColorUsageAttribute(true, true)] public Color color;
 
-        public (bool, float, Color) GetParams() {
-            if (this.isActive) {
+        public (bool, float, Color) GetParams()
+        {
+            if (this.isActive)
+            {
                 return (true, this.intensity, this.color);
             }
 
             return (false, 0f, Color.black);
         }
     }
-    
+
     [System.Serializable]
-    public class OutlineParam : EffectParam{
+    public class OutlineParam : EffectParam
+    {
         [Range(0f, 5.0f)] public float width;
         [ColorUsageAttribute(true, true)] public Color color;
-        
-        public (bool, float, Color) GetParams() {
-            if (this.isActive) {
+
+        public (bool, float, Color) GetParams()
+        {
+            if (this.isActive)
+            {
                 return (true, this.width, this.color);
             }
 
@@ -161,12 +185,15 @@ namespace SoFunny.Rendering.Funnyland {
     }
 
     [System.Serializable]
-    public class OccludeeParam : EffectParam{
+    public class OccludeeParam : EffectParam
+    {
         [Range(0f, 1f)] public float intensity;
         [ColorUsageAttribute(true, true)] public Color color;
-        
-        public (bool, float, Color) GetParams() {
-            if (this.isActive) {
+
+        public (bool, float, Color) GetParams()
+        {
+            if (this.isActive)
+            {
                 return (true, this.intensity, this.color);
             }
 
