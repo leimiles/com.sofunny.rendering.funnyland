@@ -51,6 +51,8 @@ namespace SoFunny.Rendering.Funnyland
         RTHandle m_XRTargetHandleAlias;
 
         StencilState m_DefaultStencilState;
+        
+        DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
@@ -61,7 +63,11 @@ namespace SoFunny.Rendering.Funnyland
         DrawSkyboxPass m_DrawSkyboxPass;
         CopyDepthPass m_CopyDepthPass;
         CopyColorPass m_CopyColorPass;
-
+  
+#if UNITY_EDITOR
+        CopyDepthPass m_FinalDepthCopyPass;
+#endif
+        
         RTHandle m_OpaqueColor;
 
         FunnyUIBackgroundBlurPass m_FunnyUIBackgroundBlurPass;
@@ -81,7 +87,6 @@ namespace SoFunny.Rendering.Funnyland
         Material m_CopyDepthMaterial = null;
         Material m_EffectsMaterial = null;
         Material m_SamplingMaterial = null;
-
 
 #if UNITY_EDITOR
         Material m_HistogramMaterial = null;
@@ -174,6 +179,7 @@ namespace SoFunny.Rendering.Funnyland
             //this.m_CopyDepthMode = CopyDepthMode.AfterOpaques;
             //this.m_DepthPrimingRecommended = false;
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_RenderOpaqueForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawOpaqueForwardPass, data.shaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
@@ -186,6 +192,11 @@ namespace SoFunny.Rendering.Funnyland
             m_RenderTransparentForwardPass = new DrawObjectsPass(ProfilerSamplerString.drawTransparentForwardPass, data.shaderTagIds, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_FunnyUIBackgroundBlurPass = new FunnyUIBackgroundBlurPass(RenderPassEvent.AfterRenderingPostProcessing, data.enableUIBlur, data.uiBlurSettings);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitMaterial);
+            
+#if UNITY_EDITOR
+            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
+#endif
+
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorRTAttachment");
 
 #if UNITY_EDITOR
@@ -277,11 +288,11 @@ namespace SoFunny.Rendering.Funnyland
 
 
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
-            // #if UNITY_EDITOR
-            //             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
-            // #else
-            //             bool isGizmosEnabled = false;
-            // #endif
+            #if UNITY_EDITOR
+                        bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
+            #else
+                        bool isGizmosEnabled = false;
+            #endif
             SetGraphicTexture(cmd);
 #if UNITY_EDITOR
             bool isDebug = m_DebugPass.isCreated;
@@ -314,6 +325,18 @@ namespace SoFunny.Rendering.Funnyland
             var createColorTexture = !isSimpleRendering;
 
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
+            
+            
+            bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
+            // Depth prepass is generated in the following cases:
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - Render passes require it
+            bool requiresDepthPrepass = (requiresDepthTexture)&& (!CanCopyDepth(ref renderingData.cameraData) || forcePrepass);;
+            requiresDepthPrepass |= isSceneViewOrPreviewCamera;
+            requiresDepthPrepass |= isGizmosEnabled;
+            requiresDepthPrepass |= isPreviewCamera;
+
             bool createDepthTexture = requiresDepthTexture;
             createDepthTexture |= !cameraData.resolveFinalTarget;
             createDepthTexture &= !isSimpleRendering;
@@ -366,6 +389,35 @@ namespace SoFunny.Rendering.Funnyland
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
 
+
+            // Allocate m_DepthTexture if used
+            if ( requiresDepthPrepass || requiresDepthCopyPass)
+            {
+                var depthDescriptor = cameraTargetDescriptor;
+                
+                depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+
+                depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+
+                cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+            
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                if (requiresDepthPrepass)
+                {
+                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                    EnqueuePass(m_DepthPrepass);
+                }
+            }
+#endif
+            
             /* 暂无需支持附加光阴影
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
@@ -468,16 +520,16 @@ namespace SoFunny.Rendering.Funnyland
             if (requiresDepthCopyPass)
             {
                 // 分配 m_DepthTexture 内存
-                var depthDescriptor = cameraTargetDescriptor;
-                depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                depthDescriptor.depthBufferBits = k_DepthBufferBits;
-                depthDescriptor.msaaSamples = 1; // Depth-Only pass don't use MSAA
-                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
-                cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
+                // var depthDescriptor = cameraTargetDescriptor;
+                // depthDescriptor.graphicsFormat = GraphicsFormat.None;
+                // depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                // depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                // depthDescriptor.msaaSamples = 1; // Depth-Only pass don't use MSAA
+                // RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+                // cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
+                // context.ExecuteCommandBuffer(cmd);
+                // cmd.Clear();
+            
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
             }
@@ -573,6 +625,16 @@ namespace SoFunny.Rendering.Funnyland
                 EnqueuePass(postProcessPass);
             }
 
+#if UNITY_EDITOR
+            if (isSceneViewOrPreviewCamera || (isGizmosEnabled && lastCameraInTheStack))
+            {
+                // Scene view camera should always resolve target (not stacked)
+                m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget);
+                m_FinalDepthCopyPass.CopyToDepth = true;
+                m_FinalDepthCopyPass.MssaSamples = 0;
+                EnqueuePass(m_FinalDepthCopyPass);
+            }
+#endif
             #endregion
         }
 
@@ -681,6 +743,27 @@ namespace SoFunny.Rendering.Funnyland
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
+        
+        bool IsGLESDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        }
+        bool CanCopyDepth(ref CameraData cameraData)
+        {
+            bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
+            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
+            bool supportsDepthTarget = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
+            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
+
+            bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+
+            // copying MSAA depth on GLES3 is giving invalid results. This won't be fixed by the driver team because it would introduce performance issues (more info in the Fogbugz issue 1339401 comments)
+            if (IsGLESDevice() && msaaDepthResolve)
+                return false;
+
+            return supportsDepthCopy || msaaDepthResolve;
+        }
+        
         internal override void SwapColorBuffer(CommandBuffer cmd)
         {
             m_ColorBufferSystem.Swap();

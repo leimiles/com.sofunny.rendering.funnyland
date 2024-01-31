@@ -261,7 +261,6 @@ Shader "SoFunny/Funnyland/FunnyLit"
             ENDHLSL
         }
         */
-        /*
         Pass
         {
             Name "DepthOnly"
@@ -298,10 +297,10 @@ Shader "SoFunny/Funnyland/FunnyLit"
             // -------------------------------------
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
+            // #include "Packages/com.unity.render-pipelines.universal/Shaders/Funnyland/Libs/FunnyLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
-        */
         /*
         // This pass is used when drawing to a _CameraNormalsTexture texture
         Pass
